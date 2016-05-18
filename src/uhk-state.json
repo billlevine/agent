@@ -1,0 +1,24 @@
+{
+    "isKeyboardMerged": false,
+    "moduleSlots": [
+        {
+            "id": true,
+            "name": "keycluster-left",
+            "factoryKeymap": {
+                "layers": [
+                    {
+                        "pointerRoles": [],
+                        "keyStates": []
+                    },
+                    {},
+                    {},
+                    {}
+                ]
+            }
+        },
+        {},
+        {},
+        {},
+        {}
+    ]
+}

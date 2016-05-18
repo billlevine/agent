@@ -194,7 +194,7 @@ $(function() {
         },
       ]
     },
-    changeKeymap: {
+    switchKeymap: {
       layouts: [
         {
           value: 'Select keymap',
@@ -234,6 +234,12 @@ $(function() {
       },
       {
         type: 'default',
+        icon: 'fa-clone', // The icon for the tab will be a layer icon in svg. But for the mockup it was easier to just use something similar from fontawesome.
+        title: 'Layer',
+        content: 'layer'
+      },
+      {
+        type: 'default',
         icon: 'fa-mouse-pointer',
         title: 'Mouse',
         content: 'mouse'
@@ -247,8 +253,8 @@ $(function() {
       {
         type: 'default',
         icon: 'fa-keyboard-o',
-        title: 'Change keymap',
-        content: 'changeKeymap'
+        title: 'Keymap',
+        content: 'switchKeymap'
       },
       {
         type: 'default',
@@ -309,8 +315,20 @@ $(function() {
     var contentSource = $('#key-editor-content__source--' + tplName).html();
     var contentTemplate = Handlebars.compile(contentSource);
     $('#key-editor-content__target').html(contentTemplate(contentContext[tplName]));
-    initSelect2items();
-    _keypress_event_handlers();
+    var noSearch = false;
+    switch (tplName) {
+      case 'layer':
+        noSearch = true;
+
+      case 'keypress':
+        _keypress_event_handlers();
+
+      case 'mouse':
+        _mouse_event_handlers();
+
+      default:
+        initSelect2items(noSearch);
+    }
   });
 
 
@@ -343,6 +361,29 @@ $(function() {
     });
   };
   _keypress_event_handlers();
+
+  var _mouse_event_handlers = function() {
+    $('.mouse__action--type').on('click', 'a', function(e) {
+      var _this = $(this),
+          _mouse_config_name = _this.data('config');
+      $('.mouse__config').hide();
+      $('.mouse__config--' + _mouse_config_name).show();
+      $('.mouse__action--type li').removeClass('active');
+      _this.parents('li').addClass('active');
+    });
+
+    $('.mouse__action--config').on('click', '.btn', function(e) {
+      var _buttons = $('.mouse__action--config .btn'),
+          _mouseActionTypes = $('.mouse__action--type a'),
+          _currentMouseAction = $('.mouse__action--type li.active a'),
+          _this = $(this);
+
+      _buttons.removeClass('btn-primary');
+      _this.addClass('btn-primary');
+      _mouseActionTypes.removeClass('selected');
+      _currentMouseAction.addClass('selected');
+    });
+  }
 });
 
 
@@ -350,9 +391,15 @@ $(function() {
 // Select2 related functions.
 // ==========================
 
-function initSelect2items() {
+function initSelect2items(noSearch) {
+  var noSearch = typeof noSearch !== 'undefined' ?  noSearch : false,
+      noSearchValue = 0;
+  if (noSearch) {
+    var noSearchValue = Infinity;
+  }
   $('select').select2({
-    templateResult: formatState
+    templateResult: formatState,
+    minimumResultsForSearch: noSearchValue
   });
 
   $('select').on('select2:select', function(e) {
@@ -360,6 +407,10 @@ function initSelect2items() {
     var image = selected.data('image');
     console.log(e, selected, image);
     $('img', '.layout-preview').attr('src', 'images/' + image);
+  });
+
+  $('.layer-toggle').on('select2:select', function(e) {
+    $('.layer-help').toggle();
   });
 
   $('.layout-switcher').on('select2:open', function(e) {

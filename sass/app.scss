@@ -69,29 +69,12 @@ ul {
         background-color: #555;
         color: #fff;
 
-        .fa-star,
-        .fa-star-o {
-          display: none;
+        .fa-star {
+          color: #fff;
         }
 
         &:hover {
           background-color: #555;
-
-          .fa-star,
-          .fa-star-o {
-            display: block;
-            color: #fff;
-          }
-        }
-      }
-
-      &:hover {
-        .fa-star-o {
-          color: #000;
-
-          &:hover {
-            color: #000;
-          }
         }
       }
 
@@ -99,10 +82,6 @@ ul {
       .fa.pull-right {
         position: relative;
         top: 2px;
-      }
-
-      .fa-star-o {
-        color: #f5f5f5;
       }
 
       .fa-star {
@@ -191,35 +170,6 @@ ul {
   }
 }
 
-.grip {
-  position: relative;
-
-  &:before {
-    content: '';
-    display: none;
-    width: 5px;
-    height: 20px;
-    background-image: url(../images/grips/vertical_dark.png);
-    background-repeat: no-repeat;
-    position: absolute;
-    top: 50%;
-    left: 7px;
-    margin-top: -10px;
-  }
-
-  &.btn-primary {
-    &:before {
-      background-image: url(../images/grips/vertical.png);
-    }
-  }
-
-  &:hover {
-    &:before {
-      display: block;
-    }
-  }
-}
-
 .key-editor__popup {
   border: none;
   width: 0px;
@@ -233,18 +183,41 @@ ul {
 }
 
 svg.uhk {
-  &.faded {
-    #left-case,
-    #right-case {
-      fill: #555;
+  rect {
+    &.active {
+      //TODO: use a color variable instead of the declaration below.
+      fill: #337ab7;
     }
+  }
+}
 
-    rect {
-      fill: #666;
+/* GitHub ribbon */
+.github-fork-ribbon {
+  background-color: #a00;
+  overflow: hidden;
+  white-space: nowrap;
+  position: fixed;
+  right: -50px;
+  bottom: 40px;
+  z-index: 999999;
+  -webkit-transform: rotate(-45deg);
+     -moz-transform: rotate(-45deg);
+      -ms-transform: rotate(-45deg);
+       -o-transform: rotate(-45deg);
+          transform: rotate(-45deg);
+  -webkit-box-shadow: 0 0 10px #888;
+     -moz-box-shadow: 0 0 10px #888;
+          box-shadow: 0 0 10px #888;
 
-      &.active {
-        fill: #000;
-      }
-    }
+  a {
+    border: 1px solid #faa;
+    color: #fff;
+    display: block;
+    font: bold 81.25% 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 1px 0;
+    padding: 10px 50px;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: 0 0 5px #444;
   }
 }

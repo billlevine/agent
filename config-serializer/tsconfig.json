@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "experimentalDecorators": true
+    },
+    "exclude": [
+        "../src",
+        "../node_modules",
+        "../typings/main",
+        "../typings/main.d.ts"
+    ]
+}

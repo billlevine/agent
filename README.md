@@ -1,34 +1,22 @@
-# Ultimate Hacking Keyboard - Agent mockups
+![Agent logo & text](https://raw.githubusercontent.com/UltimateHackingKeyboard/agent-mockup/master/images/agent-logo-with-text.png)
 
-Contains HTML, CSS and JS source of the Agent mockups.
+Agent is the configuration application of the [Ultimate Hacking Keyboard](https://ultimatehackingkeyboard.com/).
 
-They serve a double purpose:
-1. easy and flexible usage of the actual Bootstrap components
-2. test some basic interaction patterns by clicking around the main UI elements.
+Agent is in a preliminary state. You can click around, and most interactions will loosely work, but the application is not production ready yet. Agent is being ported to Angular 2 after which its features will actually fully work as expected.
 
-## See it!
-* [Key action editor](http://ultimatehackingkeyboard.github.io/agent-mockup/popup.html)
-* [Macro editor](http://ultimatehackingkeyboard.github.io/agent-mockup/macro.html)
-* [Application UI](http://ultimatehackingkeyboard.github.io/agent-mockup/index.html)
+[Give it a whirl!](http://ultimatehackingkeyboard.github.io/agent/)
 
-## Try it!
-If you want to see it on your screen follow this guide:
+## Set up instructions
 
-Clone this repository
 ```
-git clone git@github.com:UltimateHackingKeyboard/agent-mockup.git
-cd agent-mockup
+git clone git@github.com:UltimateHackingKeyboard/agent.git
+cd agent
+npm install
+npm run build
 ```
 
-Install bower
-```
-npm install -g bower
-```
+In the repository you can find a `gulpfile.js` for running [browsersync](https://www.browsersync.io/), which speeds up the development process. You can fire it up with `gulp serve`.
 
-Get libraries used by the project
-```
-bower install
-```
+## Contribute
 
-### Additional information
-In the repository you find a `gulpfile.js` for running [browsersync](https://www.browsersync.io/), which speeds up our prototyping process. If you want to use it just run `npm install` in the project directory, then you can fire it up with `gulp serve`.
+Contributions are most welcome! Please always try to be as consistent as possible. Always run `npm run lint` and resolve lint warnings before every commit.
