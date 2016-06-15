@@ -3785,6 +3785,11 @@
 	// shim for using process in browser
 	
 	var process = module.exports = {};
+	
+	// cached from whatever global is present so that test runners that stub it don't break things.
+	var cachedSetTimeout = setTimeout;
+	var cachedClearTimeout = clearTimeout;
+	
 	var queue = [];
 	var draining = false;
 	var currentQueue;
@@ -3809,7 +3814,7 @@
 	    if (draining) {
 	        return;
 	    }
-	    var timeout = setTimeout(cleanUpNextTick);
+	    var timeout = cachedSetTimeout(cleanUpNextTick);
 	    draining = true;
 	
 	    var len = queue.length;
@@ -3826,7 +3831,7 @@
 	    }
 	    currentQueue = null;
 	    draining = false;
-	    clearTimeout(timeout);
+	    cachedClearTimeout(timeout);
 	}
 	
 	process.nextTick = function (fun) {
@@ -3838,7 +3843,7 @@
 	    }
 	    queue.push(new Item(fun, args));
 	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
+	        cachedSetTimeout(drainQueue, 0);
 	    }
 	};
 	
@@ -10006,9 +10011,9 @@
 	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
 	var platform_browser_dynamic_1 = __webpack_require__(28);
 	var main_app_component_1 = __webpack_require__(307);
-	var data_provider_service_1 = __webpack_require__(320);
-	var mapper_service_1 = __webpack_require__(317);
-	process.stdout = __webpack_require__(373)();
+	var data_provider_service_1 = __webpack_require__(321);
+	var mapper_service_1 = __webpack_require__(318);
+	process.stdout = __webpack_require__(383)();
 	platform_browser_dynamic_1.bootstrap(main_app_component_1.MainAppComponent, [
 	    data_provider_service_1.DataProviderService,
 	    mapper_service_1.MapperService
@@ -49293,14 +49298,11 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
-	var svg_keyboard_component_1 = __webpack_require__(308);
-	var svg_module_model_1 = __webpack_require__(371);
-	var data_provider_service_1 = __webpack_require__(320);
-	var uhk_configuration_service_1 = __webpack_require__(319);
+	var svg_keyboard_popover_component_1 = __webpack_require__(308);
+	var uhk_configuration_service_1 = __webpack_require__(320);
 	var MainAppComponent = (function () {
-	    function MainAppComponent(renderer, dps, uhkConfigurationService) {
+	    function MainAppComponent(renderer, uhkConfigurationService) {
 	        this.renderer = renderer;
-	        this.dps = dps;
 	        this.uhkConfigurationService = uhkConfigurationService;
 	        this.buttons = [];
 	        this.keyboards = [];
@@ -49308,15 +49310,7 @@
 	        this.numAnimationInProgress = 0;
 	    }
 	    MainAppComponent.prototype.ngOnInit = function () {
-	        var svg = this.dps.getBaseLayer();
-	        this.svgAttributes = {
-	            viewBox: svg.$.viewBox,
-	            transform: svg.g[0].$.transform,
-	            fill: svg.g[0].$.fill
-	        };
-	        this.modules = svg.g[0].g.map(function (obj) { return new svg_module_model_1.SvgModule(obj); });
-	        this.modules = [this.modules[1], this.modules[0]]; // TODO: remove if the svg will be correct
-	        this.layers = this.uhkConfigurationService.getUhkConfiguration().keyMaps.elements[0].layers;
+	        this.layers = this.uhkConfigurationService.getUhkConfiguration().keymaps.elements[0].layers;
 	    };
 	    MainAppComponent.prototype.ngAfterViewInit = function () {
 	        this.buttons = this.buttonsQueryList.toArray();
@@ -49368,19 +49362,19 @@
 	        __metadata('design:type', core_1.QueryList)
 	    ], MainAppComponent.prototype, "buttonsQueryList", void 0);
 	    __decorate([
-	        core_1.ViewChildren(svg_keyboard_component_1.SvgKeyboardComponent, { read: core_1.ElementRef }), 
+	        core_1.ViewChildren(svg_keyboard_popover_component_1.SvgKeyboardPopoverComponent, { read: core_1.ElementRef }), 
 	        __metadata('design:type', core_1.QueryList)
 	    ], MainAppComponent.prototype, "keyboardsQueryList", void 0);
 	    MainAppComponent = __decorate([
 	        core_1.Component({
 	            moduleId: module.id,
 	            selector: 'main-app',
-	            template: "   <div>\n            <button #baseButton type=\"button\" class=\"btn btn-default btn-lg btn-primary\" (click)=\"selectLayer(0)\">\n                Base\n            </button>\n            <button #modButton type=\"button\" class=\"btn btn-default btn-lg\" (click)=\"selectLayer(1)\">\n                Mod\n            </button>\n            <button #fnButton type=\"button\" class=\"btn btn-default btn-lg\" (click)=\"selectLayer(2)\">\n                Fn\n            </button>\n            <button #mouseButton type=\"button\" class=\"btn btn-default btn-lg\" (click)=\"selectLayer(3)\">\n                Mouse\n            </button>\n        </div>\n        <div>\n            <svg-keyboard *ngFor=\"let layer of layers.elements\"\n                            [svgAttributes]=\"svgAttributes\"\n                            [modules]=\"modules\"\n                            [moduleConfig]=\"layer.modules.elements\"\n                            (animationend)=\"onKeyboardAnimationEnd($event)\"\n                            hidden>\n            </svg-keyboard>\n        </div>\n    ",
-	            styles: [__webpack_require__(372)],
-	            directives: [svg_keyboard_component_1.SvgKeyboardComponent],
+	            template: "   <div>\n            <button #baseButton type=\"button\" class=\"btn btn-default btn-lg btn-primary\" (click)=\"selectLayer(0)\">\n                Base\n            </button>\n            <button #modButton type=\"button\" class=\"btn btn-default btn-lg\" (click)=\"selectLayer(1)\">\n                Mod\n            </button>\n            <button #fnButton type=\"button\" class=\"btn btn-default btn-lg\" (click)=\"selectLayer(2)\">\n                Fn\n            </button>\n            <button #mouseButton type=\"button\" class=\"btn btn-default btn-lg\" (click)=\"selectLayer(3)\">\n                Mouse\n            </button>\n        </div>\n        <div>\n            <svg-keyboard-popover *ngFor=\"let layer of layers.elements\"\n                            [moduleConfig]=\"layer.modules.elements\"\n                            (animationend)=\"onKeyboardAnimationEnd($event)\"\n                            hidden>\n            </svg-keyboard-popover>\n        </div>\n    ",
+	            styles: [__webpack_require__(382)],
+	            directives: [svg_keyboard_popover_component_1.SvgKeyboardPopoverComponent],
 	            providers: [uhk_configuration_service_1.UhkConfigurationService]
 	        }), 
-	        __metadata('design:paramtypes', [core_1.Renderer, data_provider_service_1.DataProviderService, uhk_configuration_service_1.UhkConfigurationService])
+	        __metadata('design:paramtypes', [core_1.Renderer, uhk_configuration_service_1.UhkConfigurationService])
 	    ], MainAppComponent);
 	    return MainAppComponent;
 	}());
@@ -49402,46 +49396,56 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
-	var svg_module_component_1 = __webpack_require__(309);
-	var popover_component_1 = __webpack_require__(361);
-	var SvgKeyboardComponent = (function () {
-	    function SvgKeyboardComponent() {
-	        this.modules = [];
+	var svg_keyboard_component_1 = __webpack_require__(309);
+	var popover_component_1 = __webpack_require__(363);
+	var SvgKeyboardPopoverComponent = (function () {
+	    function SvgKeyboardPopoverComponent() {
+	        this.keyEditConfig = {
+	            moduleId: undefined,
+	            keyId: undefined
+	        };
 	    }
-	    SvgKeyboardComponent.prototype.ngOnInit = function () { };
-	    SvgKeyboardComponent.prototype.onEditKeyActionRequest = function (moduleId, keyId) {
-	        this.showPopover();
+	    SvgKeyboardPopoverComponent.prototype.ngOnInit = function () { };
+	    SvgKeyboardPopoverComponent.prototype.onKeyClick = function (moduleId, keyId) {
+	        if (!this.popoverEnabled) {
+	            this.keyEditConfig = {
+	                moduleId: moduleId,
+	                keyId: keyId
+	            };
+	            this.showPopover();
+	        }
 	    };
-	    SvgKeyboardComponent.prototype.showPopover = function () {
+	    SvgKeyboardPopoverComponent.prototype.onRemap = function (keyAction) {
+	        this.changeKeyAction(keyAction);
+	        this.hidePopover();
+	    };
+	    SvgKeyboardPopoverComponent.prototype.showPopover = function () {
 	        this.popoverEnabled = true;
 	    };
-	    SvgKeyboardComponent.prototype.hidePopover = function () {
+	    SvgKeyboardPopoverComponent.prototype.hidePopover = function () {
 	        this.popoverEnabled = false;
+	    };
+	    SvgKeyboardPopoverComponent.prototype.changeKeyAction = function (keyAction) {
+	        var moduleId = this.keyEditConfig.moduleId;
+	        var keyId = this.keyEditConfig.keyId;
+	        this.moduleConfig[moduleId].keyActions.elements[keyId] = keyAction;
 	    };
 	    __decorate([
 	        core_1.Input(), 
-	        __metadata('design:type', Object)
-	    ], SvgKeyboardComponent.prototype, "svgAttributes", void 0);
-	    __decorate([
-	        core_1.Input(), 
 	        __metadata('design:type', Array)
-	    ], SvgKeyboardComponent.prototype, "modules", void 0);
-	    __decorate([
-	        core_1.Input(), 
-	        __metadata('design:type', Array)
-	    ], SvgKeyboardComponent.prototype, "moduleConfig", void 0);
-	    SvgKeyboardComponent = __decorate([
+	    ], SvgKeyboardPopoverComponent.prototype, "moduleConfig", void 0);
+	    SvgKeyboardPopoverComponent = __decorate([
 	        core_1.Component({
-	            selector: 'svg-keyboard',
-	            template: "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" [attr.viewBox]=\"svgAttributes.viewBox\" height=\"100%\" width=\"100%\">\n            <svg:g [attr.transform]=\"svgAttributes.transform\" [attr.fill]=\"svgAttributes.fill\">\n                <svg:g svg-module *ngFor=\"let module of modules; let i = index\"\n                        [coverages]=\"module.coverages\"\n                        [keyboardKeys]=\"module.keyboardKeys\"\n                        [attr.transform]=\"module.attributes.transform\"\n                        [keyActions]=\"moduleConfig[i].keyActions.elements\"\n                        (editKeyActionRequest)=\"onEditKeyActionRequest(i, $event)\"\n                />\n            </svg:g>\n        </svg>\n        <popover *ngIf=\"popoverEnabled\" (cancel)=\"hidePopover()\"></popover>\n    ",
+	            selector: 'svg-keyboard-popover',
+	            template: "\n        <svg-keyboard [moduleConfig]=\"moduleConfig\"\n                    (keyClick)=\"onKeyClick($event.moduleId, $event.keyId)\">\n        </svg-keyboard>\n        <popover *ngIf=\"popoverEnabled\" (cancel)=\"hidePopover()\" (remap)=\"onRemap($event)\"></popover>\n    ",
 	            styles: ["\n        :host {\n            display: flex;\n            width: 100%;\n            height: 100%;\n            position: relative;\n        }\n    "],
-	            directives: [svg_module_component_1.SvgModuleComponent, popover_component_1.PopoverComponent]
+	            directives: [svg_keyboard_component_1.SvgKeyboardComponent, popover_component_1.PopoverComponent]
 	        }), 
 	        __metadata('design:paramtypes', [])
-	    ], SvgKeyboardComponent);
-	    return SvgKeyboardComponent;
+	    ], SvgKeyboardPopoverComponent);
+	    return SvgKeyboardPopoverComponent;
 	}());
-	exports.SvgKeyboardComponent = SvgKeyboardComponent;
+	exports.SvgKeyboardPopoverComponent = SvgKeyboardPopoverComponent;
 
 
 /***/ },
@@ -49459,7 +49463,62 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
-	var svg_keyboard_key_component_1 = __webpack_require__(310);
+	var svg_module_component_1 = __webpack_require__(310);
+	var data_provider_service_1 = __webpack_require__(321);
+	var SvgKeyboardComponent = (function () {
+	    function SvgKeyboardComponent(dps) {
+	        this.dps = dps;
+	        this.keyClick = new core_1.EventEmitter();
+	        this.modules = [];
+	        this.svgAttributes = this.dps.getKeyboardSvgAttributes();
+	    }
+	    SvgKeyboardComponent.prototype.ngOnInit = function () {
+	        this.modules = this.dps.getSvgModules();
+	    };
+	    SvgKeyboardComponent.prototype.onEditKeyActionRequest = function (moduleId, keyId) {
+	        this.keyClick.emit({
+	            moduleId: moduleId,
+	            keyId: keyId
+	        });
+	    };
+	    __decorate([
+	        core_1.Input(), 
+	        __metadata('design:type', Array)
+	    ], SvgKeyboardComponent.prototype, "moduleConfig", void 0);
+	    __decorate([
+	        core_1.Output(), 
+	        __metadata('design:type', Object)
+	    ], SvgKeyboardComponent.prototype, "keyClick", void 0);
+	    SvgKeyboardComponent = __decorate([
+	        core_1.Component({
+	            selector: 'svg-keyboard',
+	            template: "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" [attr.viewBox]=\"svgAttributes.viewBox\" height=\"100%\" width=\"100%\">\n            <svg:g [attr.transform]=\"svgAttributes.transform\" [attr.fill]=\"svgAttributes.fill\">\n                <svg:g svg-module *ngFor=\"let module of modules; let i = index\"\n                        [coverages]=\"module.coverages\"\n                        [keyboardKeys]=\"module.keyboardKeys\"\n                        [attr.transform]=\"module.attributes.transform\"\n                        [keyActions]=\"moduleConfig[i].keyActions.elements\"\n                        (editKeyActionRequest)=\"onEditKeyActionRequest(i, $event)\"\n                />\n            </svg:g>\n        </svg>\n    ",
+	            styles: ["\n        :host {\n            display: flex;\n            width: 100%;\n            height: 100%;\n            position: relative;\n        }\n    "],
+	            directives: [svg_module_component_1.SvgModuleComponent]
+	        }), 
+	        __metadata('design:paramtypes', [data_provider_service_1.DataProviderService])
+	    ], SvgKeyboardComponent);
+	    return SvgKeyboardComponent;
+	}());
+	exports.SvgKeyboardComponent = SvgKeyboardComponent;
+
+
+/***/ },
+/* 310 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+	    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+	    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+	    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = (this && this.__metadata) || function (k, v) {
+	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var core_1 = __webpack_require__(34);
+	var svg_keyboard_key_component_1 = __webpack_require__(311);
 	var SvgModuleComponent = (function () {
 	    function SvgModuleComponent() {
 	        this.editKeyActionRequest = new core_1.EventEmitter();
@@ -49500,7 +49559,7 @@
 
 
 /***/ },
-/* 310 */
+/* 311 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -49515,18 +49574,18 @@
 	};
 	var core_1 = __webpack_require__(34);
 	var common_1 = __webpack_require__(208);
-	var KeyAction_1 = __webpack_require__(311);
-	var KeystrokeAction_1 = __webpack_require__(313);
-	var KeystrokeModifiersAction_1 = __webpack_require__(315);
-	var SwitchLayerAction_1 = __webpack_require__(316);
-	var mapper_service_1 = __webpack_require__(317);
-	var SwitchKeymapAction_1 = __webpack_require__(318);
-	var uhk_configuration_service_1 = __webpack_require__(319);
-	var svg_one_line_text_key_component_1 = __webpack_require__(356);
-	var svg_two_line_text_key_component_1 = __webpack_require__(357);
-	var svg_single_icon_key_component_1 = __webpack_require__(358);
-	var svg_text_icon_key_component_1 = __webpack_require__(359);
-	var svg_switch_keymap_key_component_1 = __webpack_require__(360);
+	var KeyAction_1 = __webpack_require__(312);
+	var KeystrokeAction_1 = __webpack_require__(314);
+	var KeystrokeModifiersAction_1 = __webpack_require__(316);
+	var SwitchLayerAction_1 = __webpack_require__(317);
+	var mapper_service_1 = __webpack_require__(318);
+	var SwitchKeymapAction_1 = __webpack_require__(319);
+	var uhk_configuration_service_1 = __webpack_require__(320);
+	var svg_one_line_text_key_component_1 = __webpack_require__(358);
+	var svg_two_line_text_key_component_1 = __webpack_require__(359);
+	var svg_single_icon_key_component_1 = __webpack_require__(360);
+	var svg_text_icon_key_component_1 = __webpack_require__(361);
+	var svg_switch_keymap_key_component_1 = __webpack_require__(362);
 	var LabelTypes;
 	(function (LabelTypes) {
 	    LabelTypes[LabelTypes["OneLineText"] = 0] = "OneLineText";
@@ -49555,6 +49614,8 @@
 	    };
 	    SvgKeyboardKeyComponent.prototype.setLabels = function () {
 	        if (!this.keyAction) {
+	            this.labelSource = undefined;
+	            this.labelType = LabelTypes.OneLineText;
 	            return;
 	        }
 	        this.labelType = LabelTypes.OneLineText;
@@ -49638,6 +49699,9 @@
 	            var uhkConfiguration = this.uhkConfigurationService.getUhkConfiguration();
 	            this.labelSource = uhkConfiguration.getKeymap(keyAction.keymapId).abbreviation;
 	        }
+	        else {
+	            this.labelSource = undefined;
+	        }
 	    };
 	    __decorate([
 	        core_1.Input(), 
@@ -49685,7 +49749,7 @@
 
 
 /***/ },
-/* 311 */
+/* 312 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/// <reference path="../Function.d.ts" />
@@ -49695,7 +49759,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Serializable_1 = __webpack_require__(312);
+	var Serializable_1 = __webpack_require__(313);
 	(function (KeyActionId) {
 	    KeyActionId[KeyActionId["NoneAction"] = 0] = "NoneAction";
 	    KeyActionId[KeyActionId["KeystrokeAction"] = 1] = "KeystrokeAction";
@@ -49745,7 +49809,7 @@
 
 
 /***/ },
-/* 312 */
+/* 313 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/// <references path="Function.d.ts">
@@ -49815,7 +49879,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ },
-/* 313 */
+/* 314 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -49833,8 +49897,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var KeyAction_1 = __webpack_require__(311);
-	var assert_1 = __webpack_require__(314);
+	var KeyAction_1 = __webpack_require__(312);
+	var assert_1 = __webpack_require__(315);
 	var KeystrokeAction = (function (_super) {
 	    __extends(KeystrokeAction, _super);
 	    function KeystrokeAction() {
@@ -49873,7 +49937,7 @@
 
 
 /***/ },
-/* 314 */
+/* 315 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -49952,7 +50016,7 @@
 
 
 /***/ },
-/* 315 */
+/* 316 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -49970,8 +50034,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var KeyAction_1 = __webpack_require__(311);
-	var assert_1 = __webpack_require__(314);
+	var KeyAction_1 = __webpack_require__(312);
+	var assert_1 = __webpack_require__(315);
 	(function (KeyModifiers) {
 	    KeyModifiers[KeyModifiers["leftCtrl"] = 1] = "leftCtrl";
 	    KeyModifiers[KeyModifiers["leftShift"] = 2] = "leftShift";
@@ -50027,7 +50091,7 @@
 
 
 /***/ },
-/* 316 */
+/* 317 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -50045,8 +50109,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var KeyAction_1 = __webpack_require__(311);
-	var assert_1 = __webpack_require__(314);
+	var KeyAction_1 = __webpack_require__(312);
+	var assert_1 = __webpack_require__(315);
 	(function (LayerName) {
 	    LayerName[LayerName["mod"] = 0] = "mod";
 	    LayerName[LayerName["fn"] = 1] = "fn";
@@ -50060,13 +50124,13 @@
 	    }
 	    SwitchLayerAction.prototype._fromJsObject = function (jsObject) {
 	        this.assertKeyActionType(jsObject);
-	        this._layer = LayerName[jsObject.layer];
+	        this.layer = LayerName[jsObject.layer];
 	        this.isLayerToggleable = jsObject.toggle;
 	        return this;
 	    };
 	    SwitchLayerAction.prototype._fromBinary = function (buffer) {
 	        this.readAndAssertKeyActionId(buffer);
-	        this._layer = buffer.readUInt8();
+	        this.layer = buffer.readUInt8();
 	        this.isLayerToggleable = buffer.readBoolean();
 	        return this;
 	    };
@@ -50085,24 +50149,17 @@
 	    SwitchLayerAction.prototype.toString = function () {
 	        return "<SwitchLayerAction layer=\"" + this.layer + "\" toggle=\"" + this.isLayerToggleable + "\">";
 	    };
-	    Object.defineProperty(SwitchLayerAction.prototype, "layer", {
-	        get: function () {
-	            return this._layer;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
 	    __decorate([
 	        assert_1.assertEnum(LayerName), 
 	        __metadata('design:type', Number)
-	    ], SwitchLayerAction.prototype, "_layer", void 0);
+	    ], SwitchLayerAction.prototype, "layer", void 0);
 	    return SwitchLayerAction;
 	}(KeyAction_1.KeyAction));
 	exports.SwitchLayerAction = SwitchLayerAction;
 
 
 /***/ },
-/* 317 */
+/* 318 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -50257,7 +50314,7 @@
 
 
 /***/ },
-/* 318 */
+/* 319 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -50275,8 +50332,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var KeyAction_1 = __webpack_require__(311);
-	var assert_1 = __webpack_require__(314);
+	var KeyAction_1 = __webpack_require__(312);
+	var assert_1 = __webpack_require__(315);
 	var SwitchKeymapAction = (function (_super) {
 	    __extends(SwitchKeymapAction, _super);
 	    function SwitchKeymapAction() {
@@ -50315,7 +50372,7 @@
 
 
 /***/ },
-/* 319 */
+/* 320 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -50329,8 +50386,8 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
-	var data_provider_service_1 = __webpack_require__(320);
-	var UhkConfiguration_1 = __webpack_require__(323);
+	var data_provider_service_1 = __webpack_require__(321);
+	var UhkConfiguration_1 = __webpack_require__(325);
 	var UhkConfigurationService = (function () {
 	    function UhkConfigurationService(dataProviderService) {
 	        this.dataProviderService = dataProviderService;
@@ -50349,7 +50406,7 @@
 
 
 /***/ },
-/* 320 */
+/* 321 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -50363,14 +50420,27 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
+	var svg_module_model_1 = __webpack_require__(322);
 	var DataProviderService = (function () {
 	    function DataProviderService() {
 	    }
-	    DataProviderService.prototype.getBaseLayer = function () {
-	        return __webpack_require__(321).svg;
-	    };
 	    DataProviderService.prototype.getUHKConfig = function () {
-	        return __webpack_require__(322);
+	        return __webpack_require__(323);
+	    };
+	    DataProviderService.prototype.getKeyboardSvgAttributes = function () {
+	        var svg = this.getBaseLayer();
+	        return {
+	            viewBox: svg.$.viewBox,
+	            transform: svg.g[0].$.transform,
+	            fill: svg.g[0].$.fill
+	        };
+	    };
+	    DataProviderService.prototype.getSvgModules = function () {
+	        var modules = this.getBaseLayer().g[0].g.map(function (obj) { return new svg_module_model_1.SvgModule(obj); });
+	        return [modules[1], modules[0]]; // TODO: remove if the svg will be correct
+	    };
+	    DataProviderService.prototype.getBaseLayer = function () {
+	        return __webpack_require__(324).svg;
 	    };
 	    DataProviderService = __decorate([
 	        core_1.Injectable(), 
@@ -50382,13 +50452,27 @@
 
 
 /***/ },
-/* 321 */
+/* 322 */
 /***/ function(module, exports) {
 
-	module.exports = {"svg":{"$":{"xmlns:dc":"http://purl.org/dc/elements/1.1/","xmlns:cc":"http://creativecommons.org/ns#","xmlns:rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#","xmlns:svg":"http://www.w3.org/2000/svg","xmlns":"http://www.w3.org/2000/svg","xmlns:sodipodi":"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd","xmlns:inkscape":"http://www.inkscape.org/namespaces/inkscape","version":"1.1","width":"1024.3346","height":"471.36612","viewBox":"0 0 1024.3346 471.36612","style":"overflow:visible;","id":"SvgjsSvg1006","inkscape:version":"0.91 r","sodipodi:docname":"base-layer.svg"},"metadata":[{"$":{"id":"metadata230"},"rdf:RDF":[{"cc:Work":[{"$":{"rdf:about":""},"dc:format":["image/svg+xml"],"dc:type":[{"$":{"rdf:resource":"http://purl.org/dc/dcmitype/StillImage"}}]}]}]}],"defs":[{"$":{"id":"defs228"}}],"sodipodi:namedview":[{"$":{"pagecolor":"#ffffff","bordercolor":"#666666","borderopacity":"1","objecttolerance":"10","gridtolerance":"10","guidetolerance":"10","inkscape:pageopacity":"0","inkscape:pageshadow":"2","inkscape:window-width":"1920","inkscape:window-height":"1028","id":"namedview226","showgrid":"false","inkscape:zoom":"1.046533","inkscape:cx":"461.77814","inkscape:cy":"312.8806","inkscape:window-x":"0","inkscape:window-y":"25","inkscape:window-maximized":"1","inkscape:current-layer":"left-parts"}}],"text":[{"$":{"x":"495.03632","y":"20","style":"font-size:34px;fill:#000000;font-family:Sans;text-align:center;text-anchor:middle;display:none;","font-family":"Helvetica, Arial, sans-serif","id":"layer-text"},"tspan":[{"_":"\n            Base layer\n        ","$":{"x":"495.03632","dy":"20.8","id":"SvgjsTspan1235"}}]}],"g":[{"$":{"transform":"translate(0 -580.99607)","style":"stroke:none;","id":"root","fill":"#333333"},"g":[{"$":{"transform":"translate(221.57008 1101.7666)","id":"left-parts"},"path":[{"$":{"d":"m 272.81516,-456.8166 -110.96971,0 c -0.32924,0 -0.65827,-0.0468 -0.97472,-0.1386 -0.31645,-0.0918 -0.62027,-0.22866 -0.89995,-0.40551 -0.27968,-0.17684 -0.53514,-0.39367 -0.7565,-0.64244 -0.22135,-0.24877 -0.40854,-0.52944 -0.55411,-0.83133 -0.14558,-0.3019 -0.24947,-0.62497 -0.30744,-0.95668 -3.11169,-17.80554 -6.22337,-35.61107 -9.33505,-53.41661 -0.16174,-0.9255 -0.46824,-1.8252 -0.90498,-2.65546 -0.43675,-0.83027 -1.00365,-1.59085 -1.67347,-2.24448 -0.66982,-0.65363 -1.44238,-1.20007 -2.2801,-1.61231 -0.83772,-0.41224 -1.74031,-0.69012 -2.66354,-0.81983 -0.92322,-0.12971 -1.86673,-0.11121 -2.78423,0.0544 l -352.97851,63.7382 c -0.81059,0.14636 -1.60096,0.40708 -2.34074,0.77257 -0.73979,0.3655 -1.42881,0.83571 -2.04035,1.39272 -0.61154,0.55702 -1.14547,1.20071 -1.58116,1.90622 -0.43571,0.70551 -0.77307,1.47267 -0.99931,2.2718 -0.22626,0.79913 -0.34137,1.63006 -0.34137,2.4609 l 0,389.594539 c 0,0.936363 0.14626,1.872858 0.43247,2.764016 0.2862,0.891158 0.7123,1.736655 1.25787,2.494964 0.54557,0.75831 1.21044,1.429141 1.96201,1.979608 0.75157,0.550465 1.58955,0.980376 2.47279,1.269152 0.88324,0.288776 1.8114,0.436358 2.73944,0.436358 l 342.7307,-1.4e-5 c 1.77165,0 3.54314,-1.7716 3.54314,-3.5432 0,-12.931979 0,-22.981768 0,-34.5827 0,-1.7717 -1.77149,-3.545 -3.54314,-3.545 l -322.73675,0.0013 c -2.79101,0 -5.3291,-2.56086 -5.3291,-5.376898 l 0,-329.455425 c 0,-2.81604 2.53809,-5.3769 5.3291,-5.3769 l 463.75521,0 c 0.93041,0 1.77697,-0.85444 1.77697,-1.79353 0,-7.80504 0,-14.68214 0,-21.94355 0,-0.94218 -0.84656,-1.79632 -1.77697,-1.79632","id":"left-case"}}],"rect":[{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-0"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-127.57339","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-1"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-60.250557","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-2"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"7.072278","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-3"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"74.395111","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-4"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"141.71794","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-5"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"209.04079","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-6"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-360.50003","height":"63.779526","width":"95.669289","id":"key-7"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-95.683624","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-8"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-28.360792","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-9"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"38.962044","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-10"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"106.28487","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-11"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"173.60771","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-12"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-293.17719","height":"63.779526","width":"111.61417","id":"key-13"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-79.419846","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-14"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-11.778116","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-15"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"55.863617","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-16"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"123.50535","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-17"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"191.14708","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-18"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-225.85435","height":"63.779526","width":"143.50394","id":"key-19"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-47.14032","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-20"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"20.891174","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-21"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"88.922668","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-22"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"156.95416","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-23"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"224.98566","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-24"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-25"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-111.98284","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-26"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-29.069458","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-27"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"53.843929","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-28"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"137.11165","y":"-158.53151","height":"63.779526","width":"131.10236","id":"key-29"}},{"$":{"rx":"3.4856062","ry":"3.5433071","x":"137.11165","y":"-91.071709","height":"41.667309","width":"131.10236","id":"key-30"}}],"text":[{"$":{"y":"-435.0346495","x":"-163.006457","font-size":"19","id":"SvgjsText1084","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"~","$":{"x":"-163.006457","dy":"30.400000000000002","id":"SvgjsTspan1085"}},{"_":"`","$":{"x":"-163.006457","dy":"30.400000000000002","id":"SvgjsTspan1086"}}]},{"$":{"y":"-435.0346495","x":"-95.683627","font-size":"19","id":"SvgjsText1087","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"!","$":{"x":"-95.683627","dy":"30.400000000000002","id":"SvgjsTspan1088"}},{"_":"1","$":{"x":"-95.683627","dy":"30.400000000000002","id":"SvgjsTspan1089"}}]},{"$":{"y":"-435.0346495","x":"-28.360794000000002","font-size":"19","id":"SvgjsText1090","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"@","$":{"x":"-28.360794000000002","dy":"30.400000000000002","id":"SvgjsTspan1091"}},{"_":"2","$":{"x":"-28.360794000000002","dy":"30.400000000000002","id":"SvgjsTspan1092"}}]},{"$":{"y":"-435.0346495","x":"38.962041","font-size":"19","id":"SvgjsText1093","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"#","$":{"x":"38.962041","dy":"30.400000000000002","id":"SvgjsTspan1094"}},{"_":"3","$":{"x":"38.962041","dy":"30.400000000000002","id":"SvgjsTspan1095"}}]},{"$":{"y":"-435.0346495","x":"106.284874","font-size":"19","id":"SvgjsText1096","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"$","$":{"x":"106.284874","dy":"30.400000000000002","id":"SvgjsTspan1097"}},{"_":"4","$":{"x":"106.284874","dy":"30.400000000000002","id":"SvgjsTspan1098"}}]},{"$":{"y":"-435.0346495","x":"173.607703","font-size":"19","id":"SvgjsText1099","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"%","$":{"x":"173.607703","dy":"30.400000000000002","id":"SvgjsTspan1100"}},{"_":"5","$":{"x":"173.607703","dy":"30.400000000000002","id":"SvgjsTspan1101"}}]},{"$":{"y":"-435.0346495","x":"240.93055299999997","font-size":"19","id":"SvgjsText1102","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"^","$":{"x":"240.93055299999997","dy":"30.400000000000002","id":"SvgjsTspan1103"}},{"_":"6","$":{"x":"240.93055299999997","dy":"30.400000000000002","id":"SvgjsTspan1104"}}]},{"$":{"y":"-352.50870449999996","x":"-147.0615755","font-size":"19","id":"SvgjsText1125","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Tab\n                ","$":{"x":"-147.0615755","dy":"30.400000000000002","id":"SvgjsTspan1126"}}]},{"$":{"y":"-352.50870449999996","x":"-63.79386099999999","font-size":"19","id":"SvgjsText1127","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Q\n                ","$":{"x":"-63.79386099999999","dy":"30.400000000000002","id":"SvgjsTspan1128"}}]},{"$":{"y":"-352.50870449999996","x":"3.5289709999999985","font-size":"19","id":"SvgjsText1129","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    W\n                ","$":{"x":"3.5289709999999985","dy":"30.400000000000002","id":"SvgjsTspan1130"}}]},{"$":{"y":"-352.50870449999996","x":"70.851807","font-size":"19","id":"SvgjsText1131","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    E\n                ","$":{"x":"70.851807","dy":"30.400000000000002","id":"SvgjsTspan1132"}}]},{"$":{"y":"-352.50870449999996","x":"138.174633","font-size":"19","id":"SvgjsText1133","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    R\n                ","$":{"x":"138.174633","dy":"30.400000000000002","id":"SvgjsTspan1134"}}]},{"$":{"y":"-352.50870449999996","x":"205.49747299999999","font-size":"19","id":"SvgjsText1135","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    T\n                ","$":{"x":"205.49747299999999","dy":"30.400000000000002","id":"SvgjsTspan1136"}}]},{"$":{"y":"-285.1858645","x":"-139.089135","font-size":"19","id":"SvgjsText1156","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Mouse\n                ","$":{"x":"-139.089135","dy":"30.400000000000002","id":"SvgjsTspan1157"}}]},{"$":{"y":"-285.1858645","x":"-47.530083000000005","font-size":"19","id":"SvgjsText1158","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    A\n                ","$":{"x":"-47.530083000000005","dy":"30.400000000000002","id":"SvgjsTspan1159"}}]},{"$":{"y":"-285.1858645","x":"20.111646999999998","font-size":"19","id":"SvgjsText1160","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    S\n                ","$":{"x":"20.111646999999998","dy":"30.400000000000002","id":"SvgjsTspan1161"}}]},{"$":{"y":"-285.1858645","x":"87.75337999999999","font-size":"19","id":"SvgjsText1162","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    D\n                ","$":{"x":"87.75337999999999","dy":"30.400000000000002","id":"SvgjsTspan1163"}}]},{"$":{"y":"-285.1858645","x":"155.395113","font-size":"19","id":"SvgjsText1164","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    F\n                ","$":{"x":"155.395113","dy":"30.400000000000002","id":"SvgjsTspan1165"}}]},{"$":{"y":"-285.1858645","x":"223.03684299999998","font-size":"19","id":"SvgjsText1166","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    G\n                ","$":{"x":"223.03684299999998","dy":"30.400000000000002","id":"SvgjsTspan1167"}}]},{"$":{"y":"-217.86302450000002","x":"-123.14425","font-size":"19","id":"SvgjsText1184","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Shift\n                ","$":{"x":"-123.14425","dy":"30.400000000000002","id":"SvgjsTspan1185"}}]},{"$":{"y":"-217.86302450000002","x":"-15.250557000000004","font-size":"19","id":"SvgjsText1186","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Z\n                ","$":{"x":"-15.250557000000004","dy":"30.400000000000002","id":"SvgjsTspan1187"}}]},{"$":{"y":"-217.86302450000002","x":"52.780936999999994","font-size":"19","id":"SvgjsText1188","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    X\n                ","$":{"x":"52.780936999999994","dy":"30.400000000000002","id":"SvgjsTspan1189"}}]},{"$":{"y":"-217.86302450000002","x":"120.812431","font-size":"19","id":"SvgjsText1190","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    C\n                ","$":{"x":"120.812431","dy":"30.400000000000002","id":"SvgjsTspan1191"}}]},{"$":{"y":"-217.86302450000002","x":"188.843923","font-size":"19","id":"SvgjsText1192","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    V\n                ","$":{"x":"188.843923","dy":"30.400000000000002","id":"SvgjsTspan1193"}}]},{"$":{"y":"-217.86302450000002","x":"256.875423","font-size":"19","id":"SvgjsText1194","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    B\n                ","$":{"x":"256.875423","dy":"30.400000000000002","id":"SvgjsTspan1195"}}]},{"$":{"y":"-150.5401845","x":"-155.0340145","font-size":"19","id":"SvgjsText1211","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Ctrl\n                ","$":{"x":"-155.0340145","dy":"30.400000000000002","id":"SvgjsTspan1212"}}]},{"$":{"y":"-150.5401845","x":"-72.1206345","font-size":"19","id":"SvgjsText1213","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Super\n                ","$":{"x":"-72.1206345","dy":"30.400000000000002","id":"SvgjsTspan1214"}}]},{"$":{"y":"-150.5401845","x":"10.7927475","font-size":"19","id":"SvgjsText1215","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Alt\n                ","$":{"x":"10.7927475","dy":"30.400000000000002","id":"SvgjsTspan1216"}}]},{"$":{"y":"-150.5401845","x":"93.7061345","font-size":"19","id":"SvgjsText1217","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Fn\n                ","$":{"x":"93.7061345","dy":"30.400000000000002","id":"SvgjsTspan1218"}}]},{"$":{"y":"-150.5401845","x":"202.66282999999999","font-size":"19","id":"SvgjsText1219","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Mod\n                ","$":{"x":"202.66282999999999","dy":"30.400000000000002","id":"SvgjsTspan1220"}}]},{"$":{"y":"-94.136492","x":"202.66282999999999","font-size":"19","id":"SvgjsText1231","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Space\n                ","$":{"x":"202.66282999999999","dy":"30.400000000000002","id":"SvgjsTspan1232"}}]}]},{"$":{"transform":"translate(44.404903 1101.7674)","id":"right-parts"},"path":[{"$":{"d":"m 951.05862,-431.2832 c 2.791,0 5.32908,2.56086 5.32908,5.3769 l 0,329.455425 c 0,2.816038 -2.53808,5.376898 -5.32908,5.376898 l -370.67909,-0.0013 c -1.77166,0 -3.54347,1.7733 -3.54347,3.545 0,12.895215 0,23.315027 0,34.58266 0,1.7716 1.77181,3.5432 3.54347,3.5432 l 390.67297,1.44e-4 c 0.92804,0 1.85621,-0.147582 2.73944,-0.436358 0.88324,-0.288776 1.72122,-0.718687 2.47277,-1.269152 0.75157,-0.550467 1.41644,-1.221298 1.96201,-1.979608 0.54557,-0.758309 0.97166,-1.603806 1.25787,-2.494964 0.2862,-0.891158 0.43247,-1.827653 0.43247,-2.764016 l 0,-389.434639 c 0,-0.83901 -0.11739,-1.67813 -0.34806,-2.4845 -0.23066,-0.80638 -0.57456,-1.57983 -1.01841,-2.28986 -0.44385,-0.71002 -0.98756,-1.35643 -1.60971,-1.91378 -0.62215,-0.55735 -1.3226,-1.0255 -2.07365,-1.38629 -0.75105,-0.36078 -1.55253,-0.61412 -2.37301,-0.75058 -130.52433,-21.7076 -270.93602,-45.05959 -384.94144,-64.01992 -0.91165,-0.15162 -1.8469,-0.15828 -2.76061,-0.0195 -0.91372,0.13871 -1.8056,0.42276 -2.63265,0.83829 -0.82706,0.41551 -1.58903,0.96236 -2.24949,1.61394 -0.66047,0.65158 -1.21924,1.40768 -1.64996,2.2319 -0.43072,0.82422 -0.73327,1.71631 -0.8936,2.63375 -3.12168,17.84567 -6.23258,35.69325 -9.35634,53.53854 -0.058,0.33171 -0.16187,0.65478 -0.30744,0.95668 -0.14556,0.30189 -0.33275,0.58256 -0.5541,0.83133 -0.22136,0.24877 -0.47683,0.4656 -0.7565,0.64244 -0.27967,0.17685 -0.5835,0.31372 -0.89995,0.40551 -0.31645,0.0919 -0.64548,0.1386 -0.97471,0.1386 l -109.19782,-2e-5 c -0.93043,-10e-6 -1.77697,0.85413 -1.77697,1.79631 10e-6,7.4108 -1e-5,15.64271 0,21.94355 0,0.93909 0.84654,1.79353 1.77697,1.79353 l 495.73901,0","id":"right-case"}}],"rect":[{"$":{"rx":"3.5433071","ry":"3.5433071","x":"453.52896","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-0"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"520.85181","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-1"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"588.17462","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-2"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"655.4975","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-3"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"722.82031","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-4"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"790.14313","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-5"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"857.466","y":"-427.82285","height":"63.779526","width":"95.669289","id":"key-6"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"418.09589","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-7"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"485.41873","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-8"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"552.74158","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-9"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"620.06439","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-10"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"687.38727","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-11"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"754.71008","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-12"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"822.0329","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-13"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"889.35571","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-14"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"435.67072","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-15"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"503.31244","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-16"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"570.95416","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-17"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"638.59589","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-18"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"706.23761","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-19"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"773.87939","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-20"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"841.52112","y":"-293.17719","height":"63.779526","width":"111.61417","id":"key-21"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"469.47385","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-22"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"537.50537","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-23"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"605.53687","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-24"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"673.56836","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-25"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"741.59985","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-26"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"809.63135","y":"-225.85435","height":"63.779526","width":"143.50394","id":"key-27"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"448.92267","y":"-158.53151","height":"63.779526","width":"124.37008","id":"key-28"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"576.83606","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-29"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"659.74945","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-30"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"742.66284","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-31"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"825.57623","y":"-158.53151","height":"63.779526","width":"127.55905","id":"key-32"}},{"$":{"rx":"3.493542","ry":"3.5433071","x":"448.92267","y":"-91.071663","height":"41.667309","width":"124.37009","id":"key-33"}}],"text":[{"$":{"y":"-435.0346495","x":"485.418723","font-size":"19","id":"SvgjsText1105","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"&","$":{"x":"485.418723","dy":"30.400000000000002","id":"SvgjsTspan1106"}},{"_":"7","$":{"x":"485.418723","dy":"30.400000000000002","id":"SvgjsTspan1107"}}]},{"$":{"y":"-435.0346495","x":"552.741573","font-size":"19","id":"SvgjsText1108","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"*","$":{"x":"552.741573","dy":"30.400000000000002","id":"SvgjsTspan1109"}},{"_":"8","$":{"x":"552.741573","dy":"30.400000000000002","id":"SvgjsTspan1110"}}]},{"$":{"y":"-435.0346495","x":"620.064383","font-size":"19","id":"SvgjsText1111","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"(","$":{"x":"620.064383","dy":"30.400000000000002","id":"SvgjsTspan1112"}},{"_":"9","$":{"x":"620.064383","dy":"30.400000000000002","id":"SvgjsTspan1113"}}]},{"$":{"y":"-435.0346495","x":"687.387263","font-size":"19","id":"SvgjsText1114","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":")","$":{"x":"687.387263","dy":"30.400000000000002","id":"SvgjsTspan1115"}},{"_":"0","$":{"x":"687.387263","dy":"30.400000000000002","id":"SvgjsTspan1116"}}]},{"$":{"y":"-435.0346495","x":"754.710073","font-size":"19","id":"SvgjsText1117","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"_","$":{"x":"754.710073","dy":"30.400000000000002","id":"SvgjsTspan1118"}},{"_":"-","$":{"x":"754.710073","dy":"30.400000000000002","id":"SvgjsTspan1119"}}]},{"$":{"y":"-435.0346495","x":"822.0328930000001","font-size":"19","id":"SvgjsText1120","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"+","$":{"x":"822.0328930000001","dy":"30.400000000000002","id":"SvgjsTspan1121"}},{"_":"=","$":{"x":"822.0328930000001","dy":"30.400000000000002","id":"SvgjsTspan1122"}}]},{"$":{"y":"-419.8315245","x":"905.3006445","font-size":"19","id":"SvgjsText1123","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    ←\n                ","$":{"x":"905.3006445","dy":"30.400000000000002","id":"SvgjsTspan1124"}}]},{"$":{"y":"-352.50870449999996","x":"449.985653","font-size":"19","id":"SvgjsText1137","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Y\n                ","$":{"x":"449.985653","dy":"30.400000000000002","id":"SvgjsTspan1138"}}]},{"$":{"y":"-352.50870449999996","x":"517.308493","font-size":"19","id":"SvgjsText1139","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    U\n                ","$":{"x":"517.308493","dy":"30.400000000000002","id":"SvgjsTspan1140"}}]},{"$":{"y":"-352.50870449999996","x":"584.631343","font-size":"19","id":"SvgjsText1141","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    I\n                ","$":{"x":"584.631343","dy":"30.400000000000002","id":"SvgjsTspan1142"}}]},{"$":{"y":"-352.50870449999996","x":"651.954153","font-size":"19","id":"SvgjsText1143","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    O\n                ","$":{"x":"651.954153","dy":"30.400000000000002","id":"SvgjsTspan1144"}}]},{"$":{"y":"-352.50870449999996","x":"719.277033","font-size":"19","id":"SvgjsText1145","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    P\n                ","$":{"x":"719.277033","dy":"30.400000000000002","id":"SvgjsTspan1146"}}]},{"$":{"y":"-367.71182949999996","x":"786.599843","font-size":"19","id":"SvgjsText1147","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"{","$":{"x":"786.599843","dy":"30.400000000000002","id":"SvgjsTspan1148"}},{"_":"[","$":{"x":"786.599843","dy":"30.400000000000002","id":"SvgjsTspan1149"}}]},{"$":{"y":"-367.71182949999996","x":"853.9226630000001","font-size":"19","id":"SvgjsText1150","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"}","$":{"x":"853.9226630000001","dy":"30.400000000000002","id":"SvgjsTspan1151"}},{"_":"]","$":{"x":"853.9226630000001","dy":"30.400000000000002","id":"SvgjsTspan1152"}}]},{"$":{"y":"-367.71182949999996","x":"921.2454730000001","font-size":"19","id":"SvgjsText1153","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"|","$":{"x":"921.2454730000001","dy":"30.400000000000002","id":"SvgjsTspan1154"}},{"_":"\\","$":{"x":"921.2454730000001","dy":"30.400000000000002","id":"SvgjsTspan1155"}}]},{"$":{"y":"-285.1858645","x":"467.56048300000003","font-size":"19","id":"SvgjsText1168","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    H\n                ","$":{"x":"467.56048300000003","dy":"30.400000000000002","id":"SvgjsTspan1169"}}]},{"$":{"y":"-285.1858645","x":"535.2022029999999","font-size":"19","id":"SvgjsText1170","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    J\n                ","$":{"x":"535.2022029999999","dy":"30.400000000000002","id":"SvgjsTspan1171"}}]},{"$":{"y":"-285.1858645","x":"602.843923","font-size":"19","id":"SvgjsText1172","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    K\n                ","$":{"x":"602.843923","dy":"30.400000000000002","id":"SvgjsTspan1173"}}]},{"$":{"y":"-285.1858645","x":"670.4856530000001","font-size":"19","id":"SvgjsText1174","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    L\n                ","$":{"x":"670.4856530000001","dy":"30.400000000000002","id":"SvgjsTspan1175"}}]},{"$":{"y":"-300.3889895","x":"738.127373","font-size":"19","id":"SvgjsText1176","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":":","$":{"x":"738.127373","dy":"30.400000000000002","id":"SvgjsTspan1177"}},{"_":";","$":{"x":"738.127373","dy":"30.400000000000002","id":"SvgjsTspan1178"}}]},{"$":{"y":"-300.3889895","x":"805.769153","font-size":"19","id":"SvgjsText1179","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\"","$":{"x":"805.769153","dy":"30.400000000000002","id":"SvgjsTspan1180"}},{"_":"'","$":{"x":"805.769153","dy":"30.400000000000002","id":"SvgjsTspan1181"}}]},{"$":{"y":"-285.1858645","x":"897.328205","font-size":"19","id":"SvgjsText1182","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Enter\n                ","$":{"x":"897.328205","dy":"30.400000000000002","id":"SvgjsTspan1183"}}]},{"$":{"y":"-217.86302450000002","x":"501.36361300000004","font-size":"19","id":"SvgjsText1196","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    N\n                ","$":{"x":"501.36361300000004","dy":"30.400000000000002","id":"SvgjsTspan1197"}}]},{"$":{"y":"-217.86302450000002","x":"569.395133","font-size":"19","id":"SvgjsText1198","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    M\n                ","$":{"x":"569.395133","dy":"30.400000000000002","id":"SvgjsTspan1199"}}]},{"$":{"y":"-233.06614950000002","x":"637.426633","font-size":"19","id":"SvgjsText1200","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"<","$":{"x":"637.426633","dy":"30.400000000000002","id":"SvgjsTspan1201"}},{"_":",","$":{"x":"637.426633","dy":"30.400000000000002","id":"SvgjsTspan1202"}}]},{"$":{"y":"-233.06614950000002","x":"705.458123","font-size":"19","id":"SvgjsText1203","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":">","$":{"x":"705.458123","dy":"30.400000000000002","id":"SvgjsTspan1204"}},{"_":".","$":{"x":"705.458123","dy":"30.400000000000002","id":"SvgjsTspan1205"}}]},{"$":{"y":"-233.06614950000002","x":"773.489613","font-size":"19","id":"SvgjsText1206","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"?","$":{"x":"773.489613","dy":"30.400000000000002","id":"SvgjsTspan1207"}},{"_":"/","$":{"x":"773.489613","dy":"30.400000000000002","id":"SvgjsTspan1208"}}]},{"$":{"y":"-217.86302450000002","x":"881.38332","font-size":"19","id":"SvgjsText1209","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Shift\n                ","$":{"x":"881.38332","dy":"30.400000000000002","id":"SvgjsTspan1210"}}]},{"$":{"y":"-150.5401845","x":"511.10771","font-size":"19","id":"SvgjsText1221","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Space\n                ","$":{"x":"511.10771","dy":"30.400000000000002","id":"SvgjsTspan1222"}}]},{"$":{"y":"-150.5401845","x":"616.6982654999999","font-size":"19","id":"SvgjsText1223","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Fn\n                ","$":{"x":"616.6982654999999","dy":"30.400000000000002","id":"SvgjsTspan1224"}}]},{"$":{"y":"-150.5401845","x":"699.6116555","font-size":"19","id":"SvgjsText1225","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Alt\n                ","$":{"x":"699.6116555","dy":"30.400000000000002","id":"SvgjsTspan1226"}}]},{"$":{"y":"-150.5401845","x":"782.5250454999999","font-size":"19","id":"SvgjsText1227","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Super\n                ","$":{"x":"782.5250454999999","dy":"30.400000000000002","id":"SvgjsTspan1228"}}]},{"$":{"y":"-150.5401845","x":"889.355755","font-size":"19","id":"SvgjsText1229","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Ctrl\n                ","$":{"x":"889.355755","dy":"30.400000000000002","id":"SvgjsTspan1230"}}]},{"$":{"y":"-94.136446","x":"511.107715","font-size":"19","id":"SvgjsText1233","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Mod\n                ","$":{"x":"511.107715","dy":"30.400000000000002","id":"SvgjsTspan1234"}}]}]}]}]}}
+	"use strict";
+	var SvgModule = (function () {
+	    function SvgModule(obj) {
+	        this.keyboardKeys = obj.rect.map(function (rect) { return rect.$; }).map(function (rect) {
+	            rect.height = +rect.height;
+	            rect.width = +rect.width;
+	            return rect;
+	        });
+	        this.coverages = obj.path;
+	        this.attributes = obj.$;
+	    }
+	    return SvgModule;
+	}());
+	exports.SvgModule = SvgModule;
+
 
 /***/ },
-/* 322 */
+/* 323 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -50405,7 +50489,7 @@
 				"maxPointerSpeed": 200
 			}
 		],
-		"keyMaps": [
+		"keymaps": [
 			{
 				"id": 0,
 				"isDefault": true,
@@ -51346,7 +51430,13 @@
 	};
 
 /***/ },
-/* 323 */
+/* 324 */
+/***/ function(module, exports) {
+
+	module.exports = {"svg":{"$":{"xmlns:dc":"http://purl.org/dc/elements/1.1/","xmlns:cc":"http://creativecommons.org/ns#","xmlns:rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#","xmlns:svg":"http://www.w3.org/2000/svg","xmlns":"http://www.w3.org/2000/svg","xmlns:sodipodi":"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd","xmlns:inkscape":"http://www.inkscape.org/namespaces/inkscape","version":"1.1","width":"1024.3346","height":"471.36612","viewBox":"0 0 1024.3346 471.36612","style":"overflow:visible;","id":"SvgjsSvg1006","inkscape:version":"0.91 r","sodipodi:docname":"base-layer.svg"},"metadata":[{"$":{"id":"metadata230"},"rdf:RDF":[{"cc:Work":[{"$":{"rdf:about":""},"dc:format":["image/svg+xml"],"dc:type":[{"$":{"rdf:resource":"http://purl.org/dc/dcmitype/StillImage"}}]}]}]}],"defs":[{"$":{"id":"defs228"}}],"sodipodi:namedview":[{"$":{"pagecolor":"#ffffff","bordercolor":"#666666","borderopacity":"1","objecttolerance":"10","gridtolerance":"10","guidetolerance":"10","inkscape:pageopacity":"0","inkscape:pageshadow":"2","inkscape:window-width":"1920","inkscape:window-height":"1028","id":"namedview226","showgrid":"false","inkscape:zoom":"1.046533","inkscape:cx":"461.77814","inkscape:cy":"312.8806","inkscape:window-x":"0","inkscape:window-y":"25","inkscape:window-maximized":"1","inkscape:current-layer":"left-parts"}}],"text":[{"$":{"x":"495.03632","y":"20","style":"font-size:34px;fill:#000000;font-family:Sans;text-align:center;text-anchor:middle;display:none;","font-family":"Helvetica, Arial, sans-serif","id":"layer-text"},"tspan":[{"_":"\n            Base layer\n        ","$":{"x":"495.03632","dy":"20.8","id":"SvgjsTspan1235"}}]}],"g":[{"$":{"transform":"translate(0 -580.99607)","style":"stroke:none;","id":"root","fill":"#333333"},"g":[{"$":{"transform":"translate(221.57008 1101.7666)","id":"left-parts"},"path":[{"$":{"d":"m 272.81516,-456.8166 -110.96971,0 c -0.32924,0 -0.65827,-0.0468 -0.97472,-0.1386 -0.31645,-0.0918 -0.62027,-0.22866 -0.89995,-0.40551 -0.27968,-0.17684 -0.53514,-0.39367 -0.7565,-0.64244 -0.22135,-0.24877 -0.40854,-0.52944 -0.55411,-0.83133 -0.14558,-0.3019 -0.24947,-0.62497 -0.30744,-0.95668 -3.11169,-17.80554 -6.22337,-35.61107 -9.33505,-53.41661 -0.16174,-0.9255 -0.46824,-1.8252 -0.90498,-2.65546 -0.43675,-0.83027 -1.00365,-1.59085 -1.67347,-2.24448 -0.66982,-0.65363 -1.44238,-1.20007 -2.2801,-1.61231 -0.83772,-0.41224 -1.74031,-0.69012 -2.66354,-0.81983 -0.92322,-0.12971 -1.86673,-0.11121 -2.78423,0.0544 l -352.97851,63.7382 c -0.81059,0.14636 -1.60096,0.40708 -2.34074,0.77257 -0.73979,0.3655 -1.42881,0.83571 -2.04035,1.39272 -0.61154,0.55702 -1.14547,1.20071 -1.58116,1.90622 -0.43571,0.70551 -0.77307,1.47267 -0.99931,2.2718 -0.22626,0.79913 -0.34137,1.63006 -0.34137,2.4609 l 0,389.594539 c 0,0.936363 0.14626,1.872858 0.43247,2.764016 0.2862,0.891158 0.7123,1.736655 1.25787,2.494964 0.54557,0.75831 1.21044,1.429141 1.96201,1.979608 0.75157,0.550465 1.58955,0.980376 2.47279,1.269152 0.88324,0.288776 1.8114,0.436358 2.73944,0.436358 l 342.7307,-1.4e-5 c 1.77165,0 3.54314,-1.7716 3.54314,-3.5432 0,-12.931979 0,-22.981768 0,-34.5827 0,-1.7717 -1.77149,-3.545 -3.54314,-3.545 l -322.73675,0.0013 c -2.79101,0 -5.3291,-2.56086 -5.3291,-5.376898 l 0,-329.455425 c 0,-2.81604 2.53809,-5.3769 5.3291,-5.3769 l 463.75521,0 c 0.93041,0 1.77697,-0.85444 1.77697,-1.79353 0,-7.80504 0,-14.68214 0,-21.94355 0,-0.94218 -0.84656,-1.79632 -1.77697,-1.79632","id":"left-case"}}],"rect":[{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-0"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-127.57339","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-1"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-60.250557","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-2"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"7.072278","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-3"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"74.395111","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-4"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"141.71794","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-5"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"209.04079","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-6"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-360.50003","height":"63.779526","width":"95.669289","id":"key-7"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-95.683624","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-8"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-28.360792","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-9"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"38.962044","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-10"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"106.28487","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-11"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"173.60771","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-12"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-293.17719","height":"63.779526","width":"111.61417","id":"key-13"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-79.419846","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-14"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-11.778116","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-15"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"55.863617","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-16"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"123.50535","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-17"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"191.14708","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-18"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-225.85435","height":"63.779526","width":"143.50394","id":"key-19"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-47.14032","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-20"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"20.891174","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-21"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"88.922668","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-22"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"156.95416","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-23"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"224.98566","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-24"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-194.89622","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-25"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-111.98284","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-26"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"-29.069458","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-27"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"53.843929","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-28"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"137.11165","y":"-158.53151","height":"63.779526","width":"131.10236","id":"key-29"}},{"$":{"rx":"3.4856062","ry":"3.5433071","x":"137.11165","y":"-91.071709","height":"41.667309","width":"131.10236","id":"key-30"}}],"text":[{"$":{"y":"-435.0346495","x":"-163.006457","font-size":"19","id":"SvgjsText1084","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"~","$":{"x":"-163.006457","dy":"30.400000000000002","id":"SvgjsTspan1085"}},{"_":"`","$":{"x":"-163.006457","dy":"30.400000000000002","id":"SvgjsTspan1086"}}]},{"$":{"y":"-435.0346495","x":"-95.683627","font-size":"19","id":"SvgjsText1087","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"!","$":{"x":"-95.683627","dy":"30.400000000000002","id":"SvgjsTspan1088"}},{"_":"1","$":{"x":"-95.683627","dy":"30.400000000000002","id":"SvgjsTspan1089"}}]},{"$":{"y":"-435.0346495","x":"-28.360794000000002","font-size":"19","id":"SvgjsText1090","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"@","$":{"x":"-28.360794000000002","dy":"30.400000000000002","id":"SvgjsTspan1091"}},{"_":"2","$":{"x":"-28.360794000000002","dy":"30.400000000000002","id":"SvgjsTspan1092"}}]},{"$":{"y":"-435.0346495","x":"38.962041","font-size":"19","id":"SvgjsText1093","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"#","$":{"x":"38.962041","dy":"30.400000000000002","id":"SvgjsTspan1094"}},{"_":"3","$":{"x":"38.962041","dy":"30.400000000000002","id":"SvgjsTspan1095"}}]},{"$":{"y":"-435.0346495","x":"106.284874","font-size":"19","id":"SvgjsText1096","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"$","$":{"x":"106.284874","dy":"30.400000000000002","id":"SvgjsTspan1097"}},{"_":"4","$":{"x":"106.284874","dy":"30.400000000000002","id":"SvgjsTspan1098"}}]},{"$":{"y":"-435.0346495","x":"173.607703","font-size":"19","id":"SvgjsText1099","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"%","$":{"x":"173.607703","dy":"30.400000000000002","id":"SvgjsTspan1100"}},{"_":"5","$":{"x":"173.607703","dy":"30.400000000000002","id":"SvgjsTspan1101"}}]},{"$":{"y":"-435.0346495","x":"240.93055299999997","font-size":"19","id":"SvgjsText1102","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"^","$":{"x":"240.93055299999997","dy":"30.400000000000002","id":"SvgjsTspan1103"}},{"_":"6","$":{"x":"240.93055299999997","dy":"30.400000000000002","id":"SvgjsTspan1104"}}]},{"$":{"y":"-352.50870449999996","x":"-147.0615755","font-size":"19","id":"SvgjsText1125","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Tab\n                ","$":{"x":"-147.0615755","dy":"30.400000000000002","id":"SvgjsTspan1126"}}]},{"$":{"y":"-352.50870449999996","x":"-63.79386099999999","font-size":"19","id":"SvgjsText1127","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Q\n                ","$":{"x":"-63.79386099999999","dy":"30.400000000000002","id":"SvgjsTspan1128"}}]},{"$":{"y":"-352.50870449999996","x":"3.5289709999999985","font-size":"19","id":"SvgjsText1129","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    W\n                ","$":{"x":"3.5289709999999985","dy":"30.400000000000002","id":"SvgjsTspan1130"}}]},{"$":{"y":"-352.50870449999996","x":"70.851807","font-size":"19","id":"SvgjsText1131","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    E\n                ","$":{"x":"70.851807","dy":"30.400000000000002","id":"SvgjsTspan1132"}}]},{"$":{"y":"-352.50870449999996","x":"138.174633","font-size":"19","id":"SvgjsText1133","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    R\n                ","$":{"x":"138.174633","dy":"30.400000000000002","id":"SvgjsTspan1134"}}]},{"$":{"y":"-352.50870449999996","x":"205.49747299999999","font-size":"19","id":"SvgjsText1135","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    T\n                ","$":{"x":"205.49747299999999","dy":"30.400000000000002","id":"SvgjsTspan1136"}}]},{"$":{"y":"-285.1858645","x":"-139.089135","font-size":"19","id":"SvgjsText1156","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Mouse\n                ","$":{"x":"-139.089135","dy":"30.400000000000002","id":"SvgjsTspan1157"}}]},{"$":{"y":"-285.1858645","x":"-47.530083000000005","font-size":"19","id":"SvgjsText1158","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    A\n                ","$":{"x":"-47.530083000000005","dy":"30.400000000000002","id":"SvgjsTspan1159"}}]},{"$":{"y":"-285.1858645","x":"20.111646999999998","font-size":"19","id":"SvgjsText1160","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    S\n                ","$":{"x":"20.111646999999998","dy":"30.400000000000002","id":"SvgjsTspan1161"}}]},{"$":{"y":"-285.1858645","x":"87.75337999999999","font-size":"19","id":"SvgjsText1162","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    D\n                ","$":{"x":"87.75337999999999","dy":"30.400000000000002","id":"SvgjsTspan1163"}}]},{"$":{"y":"-285.1858645","x":"155.395113","font-size":"19","id":"SvgjsText1164","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    F\n                ","$":{"x":"155.395113","dy":"30.400000000000002","id":"SvgjsTspan1165"}}]},{"$":{"y":"-285.1858645","x":"223.03684299999998","font-size":"19","id":"SvgjsText1166","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    G\n                ","$":{"x":"223.03684299999998","dy":"30.400000000000002","id":"SvgjsTspan1167"}}]},{"$":{"y":"-217.86302450000002","x":"-123.14425","font-size":"19","id":"SvgjsText1184","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Shift\n                ","$":{"x":"-123.14425","dy":"30.400000000000002","id":"SvgjsTspan1185"}}]},{"$":{"y":"-217.86302450000002","x":"-15.250557000000004","font-size":"19","id":"SvgjsText1186","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Z\n                ","$":{"x":"-15.250557000000004","dy":"30.400000000000002","id":"SvgjsTspan1187"}}]},{"$":{"y":"-217.86302450000002","x":"52.780936999999994","font-size":"19","id":"SvgjsText1188","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    X\n                ","$":{"x":"52.780936999999994","dy":"30.400000000000002","id":"SvgjsTspan1189"}}]},{"$":{"y":"-217.86302450000002","x":"120.812431","font-size":"19","id":"SvgjsText1190","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    C\n                ","$":{"x":"120.812431","dy":"30.400000000000002","id":"SvgjsTspan1191"}}]},{"$":{"y":"-217.86302450000002","x":"188.843923","font-size":"19","id":"SvgjsText1192","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    V\n                ","$":{"x":"188.843923","dy":"30.400000000000002","id":"SvgjsTspan1193"}}]},{"$":{"y":"-217.86302450000002","x":"256.875423","font-size":"19","id":"SvgjsText1194","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    B\n                ","$":{"x":"256.875423","dy":"30.400000000000002","id":"SvgjsTspan1195"}}]},{"$":{"y":"-150.5401845","x":"-155.0340145","font-size":"19","id":"SvgjsText1211","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Ctrl\n                ","$":{"x":"-155.0340145","dy":"30.400000000000002","id":"SvgjsTspan1212"}}]},{"$":{"y":"-150.5401845","x":"-72.1206345","font-size":"19","id":"SvgjsText1213","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Super\n                ","$":{"x":"-72.1206345","dy":"30.400000000000002","id":"SvgjsTspan1214"}}]},{"$":{"y":"-150.5401845","x":"10.7927475","font-size":"19","id":"SvgjsText1215","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Alt\n                ","$":{"x":"10.7927475","dy":"30.400000000000002","id":"SvgjsTspan1216"}}]},{"$":{"y":"-150.5401845","x":"93.7061345","font-size":"19","id":"SvgjsText1217","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Fn\n                ","$":{"x":"93.7061345","dy":"30.400000000000002","id":"SvgjsTspan1218"}}]},{"$":{"y":"-150.5401845","x":"202.66282999999999","font-size":"19","id":"SvgjsText1219","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Mod\n                ","$":{"x":"202.66282999999999","dy":"30.400000000000002","id":"SvgjsTspan1220"}}]},{"$":{"y":"-94.136492","x":"202.66282999999999","font-size":"19","id":"SvgjsText1231","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Space\n                ","$":{"x":"202.66282999999999","dy":"30.400000000000002","id":"SvgjsTspan1232"}}]}]},{"$":{"transform":"translate(44.404903 1101.7674)","id":"right-parts"},"path":[{"$":{"d":"m 951.05862,-431.2832 c 2.791,0 5.32908,2.56086 5.32908,5.3769 l 0,329.455425 c 0,2.816038 -2.53808,5.376898 -5.32908,5.376898 l -370.67909,-0.0013 c -1.77166,0 -3.54347,1.7733 -3.54347,3.545 0,12.895215 0,23.315027 0,34.58266 0,1.7716 1.77181,3.5432 3.54347,3.5432 l 390.67297,1.44e-4 c 0.92804,0 1.85621,-0.147582 2.73944,-0.436358 0.88324,-0.288776 1.72122,-0.718687 2.47277,-1.269152 0.75157,-0.550467 1.41644,-1.221298 1.96201,-1.979608 0.54557,-0.758309 0.97166,-1.603806 1.25787,-2.494964 0.2862,-0.891158 0.43247,-1.827653 0.43247,-2.764016 l 0,-389.434639 c 0,-0.83901 -0.11739,-1.67813 -0.34806,-2.4845 -0.23066,-0.80638 -0.57456,-1.57983 -1.01841,-2.28986 -0.44385,-0.71002 -0.98756,-1.35643 -1.60971,-1.91378 -0.62215,-0.55735 -1.3226,-1.0255 -2.07365,-1.38629 -0.75105,-0.36078 -1.55253,-0.61412 -2.37301,-0.75058 -130.52433,-21.7076 -270.93602,-45.05959 -384.94144,-64.01992 -0.91165,-0.15162 -1.8469,-0.15828 -2.76061,-0.0195 -0.91372,0.13871 -1.8056,0.42276 -2.63265,0.83829 -0.82706,0.41551 -1.58903,0.96236 -2.24949,1.61394 -0.66047,0.65158 -1.21924,1.40768 -1.64996,2.2319 -0.43072,0.82422 -0.73327,1.71631 -0.8936,2.63375 -3.12168,17.84567 -6.23258,35.69325 -9.35634,53.53854 -0.058,0.33171 -0.16187,0.65478 -0.30744,0.95668 -0.14556,0.30189 -0.33275,0.58256 -0.5541,0.83133 -0.22136,0.24877 -0.47683,0.4656 -0.7565,0.64244 -0.27967,0.17685 -0.5835,0.31372 -0.89995,0.40551 -0.31645,0.0919 -0.64548,0.1386 -0.97471,0.1386 l -109.19782,-2e-5 c -0.93043,-10e-6 -1.77697,0.85413 -1.77697,1.79631 10e-6,7.4108 -1e-5,15.64271 0,21.94355 0,0.93909 0.84654,1.79353 1.77697,1.79353 l 495.73901,0","id":"right-case"}}],"rect":[{"$":{"rx":"3.5433071","ry":"3.5433071","x":"453.52896","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-0"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"520.85181","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-1"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"588.17462","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-2"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"655.4975","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-3"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"722.82031","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-4"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"790.14313","y":"-427.82285","height":"63.779526","width":"63.779526","id":"key-5"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"857.466","y":"-427.82285","height":"63.779526","width":"95.669289","id":"key-6"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"418.09589","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-7"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"485.41873","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-8"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"552.74158","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-9"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"620.06439","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-10"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"687.38727","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-11"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"754.71008","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-12"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"822.0329","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-13"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"889.35571","y":"-360.50003","height":"63.779526","width":"63.779526","id":"key-14"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"435.67072","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-15"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"503.31244","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-16"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"570.95416","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-17"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"638.59589","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-18"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"706.23761","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-19"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"773.87939","y":"-293.17719","height":"63.779526","width":"63.779526","id":"key-20"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"841.52112","y":"-293.17719","height":"63.779526","width":"111.61417","id":"key-21"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"469.47385","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-22"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"537.50537","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-23"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"605.53687","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-24"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"673.56836","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-25"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"741.59985","y":"-225.85435","height":"63.779526","width":"63.779526","id":"key-26"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"809.63135","y":"-225.85435","height":"63.779526","width":"143.50394","id":"key-27"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"448.92267","y":"-158.53151","height":"63.779526","width":"124.37008","id":"key-28"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"576.83606","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-29"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"659.74945","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-30"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"742.66284","y":"-158.53151","height":"63.779526","width":"79.724411","id":"key-31"}},{"$":{"rx":"3.5433071","ry":"3.5433071","x":"825.57623","y":"-158.53151","height":"63.779526","width":"127.55905","id":"key-32"}},{"$":{"rx":"3.493542","ry":"3.5433071","x":"448.92267","y":"-91.071663","height":"41.667309","width":"124.37009","id":"key-33"}}],"text":[{"$":{"y":"-435.0346495","x":"485.418723","font-size":"19","id":"SvgjsText1105","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"&","$":{"x":"485.418723","dy":"30.400000000000002","id":"SvgjsTspan1106"}},{"_":"7","$":{"x":"485.418723","dy":"30.400000000000002","id":"SvgjsTspan1107"}}]},{"$":{"y":"-435.0346495","x":"552.741573","font-size":"19","id":"SvgjsText1108","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"*","$":{"x":"552.741573","dy":"30.400000000000002","id":"SvgjsTspan1109"}},{"_":"8","$":{"x":"552.741573","dy":"30.400000000000002","id":"SvgjsTspan1110"}}]},{"$":{"y":"-435.0346495","x":"620.064383","font-size":"19","id":"SvgjsText1111","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"(","$":{"x":"620.064383","dy":"30.400000000000002","id":"SvgjsTspan1112"}},{"_":"9","$":{"x":"620.064383","dy":"30.400000000000002","id":"SvgjsTspan1113"}}]},{"$":{"y":"-435.0346495","x":"687.387263","font-size":"19","id":"SvgjsText1114","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":")","$":{"x":"687.387263","dy":"30.400000000000002","id":"SvgjsTspan1115"}},{"_":"0","$":{"x":"687.387263","dy":"30.400000000000002","id":"SvgjsTspan1116"}}]},{"$":{"y":"-435.0346495","x":"754.710073","font-size":"19","id":"SvgjsText1117","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"_","$":{"x":"754.710073","dy":"30.400000000000002","id":"SvgjsTspan1118"}},{"_":"-","$":{"x":"754.710073","dy":"30.400000000000002","id":"SvgjsTspan1119"}}]},{"$":{"y":"-435.0346495","x":"822.0328930000001","font-size":"19","id":"SvgjsText1120","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"+","$":{"x":"822.0328930000001","dy":"30.400000000000002","id":"SvgjsTspan1121"}},{"_":"=","$":{"x":"822.0328930000001","dy":"30.400000000000002","id":"SvgjsTspan1122"}}]},{"$":{"y":"-419.8315245","x":"905.3006445","font-size":"19","id":"SvgjsText1123","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    ←\n                ","$":{"x":"905.3006445","dy":"30.400000000000002","id":"SvgjsTspan1124"}}]},{"$":{"y":"-352.50870449999996","x":"449.985653","font-size":"19","id":"SvgjsText1137","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Y\n                ","$":{"x":"449.985653","dy":"30.400000000000002","id":"SvgjsTspan1138"}}]},{"$":{"y":"-352.50870449999996","x":"517.308493","font-size":"19","id":"SvgjsText1139","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    U\n                ","$":{"x":"517.308493","dy":"30.400000000000002","id":"SvgjsTspan1140"}}]},{"$":{"y":"-352.50870449999996","x":"584.631343","font-size":"19","id":"SvgjsText1141","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    I\n                ","$":{"x":"584.631343","dy":"30.400000000000002","id":"SvgjsTspan1142"}}]},{"$":{"y":"-352.50870449999996","x":"651.954153","font-size":"19","id":"SvgjsText1143","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    O\n                ","$":{"x":"651.954153","dy":"30.400000000000002","id":"SvgjsTspan1144"}}]},{"$":{"y":"-352.50870449999996","x":"719.277033","font-size":"19","id":"SvgjsText1145","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    P\n                ","$":{"x":"719.277033","dy":"30.400000000000002","id":"SvgjsTspan1146"}}]},{"$":{"y":"-367.71182949999996","x":"786.599843","font-size":"19","id":"SvgjsText1147","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"{","$":{"x":"786.599843","dy":"30.400000000000002","id":"SvgjsTspan1148"}},{"_":"[","$":{"x":"786.599843","dy":"30.400000000000002","id":"SvgjsTspan1149"}}]},{"$":{"y":"-367.71182949999996","x":"853.9226630000001","font-size":"19","id":"SvgjsText1150","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"}","$":{"x":"853.9226630000001","dy":"30.400000000000002","id":"SvgjsTspan1151"}},{"_":"]","$":{"x":"853.9226630000001","dy":"30.400000000000002","id":"SvgjsTspan1152"}}]},{"$":{"y":"-367.71182949999996","x":"921.2454730000001","font-size":"19","id":"SvgjsText1153","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"|","$":{"x":"921.2454730000001","dy":"30.400000000000002","id":"SvgjsTspan1154"}},{"_":"\\","$":{"x":"921.2454730000001","dy":"30.400000000000002","id":"SvgjsTspan1155"}}]},{"$":{"y":"-285.1858645","x":"467.56048300000003","font-size":"19","id":"SvgjsText1168","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    H\n                ","$":{"x":"467.56048300000003","dy":"30.400000000000002","id":"SvgjsTspan1169"}}]},{"$":{"y":"-285.1858645","x":"535.2022029999999","font-size":"19","id":"SvgjsText1170","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    J\n                ","$":{"x":"535.2022029999999","dy":"30.400000000000002","id":"SvgjsTspan1171"}}]},{"$":{"y":"-285.1858645","x":"602.843923","font-size":"19","id":"SvgjsText1172","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    K\n                ","$":{"x":"602.843923","dy":"30.400000000000002","id":"SvgjsTspan1173"}}]},{"$":{"y":"-285.1858645","x":"670.4856530000001","font-size":"19","id":"SvgjsText1174","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    L\n                ","$":{"x":"670.4856530000001","dy":"30.400000000000002","id":"SvgjsTspan1175"}}]},{"$":{"y":"-300.3889895","x":"738.127373","font-size":"19","id":"SvgjsText1176","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":":","$":{"x":"738.127373","dy":"30.400000000000002","id":"SvgjsTspan1177"}},{"_":";","$":{"x":"738.127373","dy":"30.400000000000002","id":"SvgjsTspan1178"}}]},{"$":{"y":"-300.3889895","x":"805.769153","font-size":"19","id":"SvgjsText1179","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\"","$":{"x":"805.769153","dy":"30.400000000000002","id":"SvgjsTspan1180"}},{"_":"'","$":{"x":"805.769153","dy":"30.400000000000002","id":"SvgjsTspan1181"}}]},{"$":{"y":"-285.1858645","x":"897.328205","font-size":"19","id":"SvgjsText1182","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Enter\n                ","$":{"x":"897.328205","dy":"30.400000000000002","id":"SvgjsTspan1183"}}]},{"$":{"y":"-217.86302450000002","x":"501.36361300000004","font-size":"19","id":"SvgjsText1196","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    N\n                ","$":{"x":"501.36361300000004","dy":"30.400000000000002","id":"SvgjsTspan1197"}}]},{"$":{"y":"-217.86302450000002","x":"569.395133","font-size":"19","id":"SvgjsText1198","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    M\n                ","$":{"x":"569.395133","dy":"30.400000000000002","id":"SvgjsTspan1199"}}]},{"$":{"y":"-233.06614950000002","x":"637.426633","font-size":"19","id":"SvgjsText1200","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"<","$":{"x":"637.426633","dy":"30.400000000000002","id":"SvgjsTspan1201"}},{"_":",","$":{"x":"637.426633","dy":"30.400000000000002","id":"SvgjsTspan1202"}}]},{"$":{"y":"-233.06614950000002","x":"705.458123","font-size":"19","id":"SvgjsText1203","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":">","$":{"x":"705.458123","dy":"30.400000000000002","id":"SvgjsTspan1204"}},{"_":".","$":{"x":"705.458123","dy":"30.400000000000002","id":"SvgjsTspan1205"}}]},{"$":{"y":"-233.06614950000002","x":"773.489613","font-size":"19","id":"SvgjsText1206","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"?","$":{"x":"773.489613","dy":"30.400000000000002","id":"SvgjsTspan1207"}},{"_":"/","$":{"x":"773.489613","dy":"30.400000000000002","id":"SvgjsTspan1208"}}]},{"$":{"y":"-217.86302450000002","x":"881.38332","font-size":"19","id":"SvgjsText1209","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Shift\n                ","$":{"x":"881.38332","dy":"30.400000000000002","id":"SvgjsTspan1210"}}]},{"$":{"y":"-150.5401845","x":"511.10771","font-size":"19","id":"SvgjsText1221","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Space\n                ","$":{"x":"511.10771","dy":"30.400000000000002","id":"SvgjsTspan1222"}}]},{"$":{"y":"-150.5401845","x":"616.6982654999999","font-size":"19","id":"SvgjsText1223","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Fn\n                ","$":{"x":"616.6982654999999","dy":"30.400000000000002","id":"SvgjsTspan1224"}}]},{"$":{"y":"-150.5401845","x":"699.6116555","font-size":"19","id":"SvgjsText1225","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Alt\n                ","$":{"x":"699.6116555","dy":"30.400000000000002","id":"SvgjsTspan1226"}}]},{"$":{"y":"-150.5401845","x":"782.5250454999999","font-size":"19","id":"SvgjsText1227","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Super\n                ","$":{"x":"782.5250454999999","dy":"30.400000000000002","id":"SvgjsTspan1228"}}]},{"$":{"y":"-150.5401845","x":"889.355755","font-size":"19","id":"SvgjsText1229","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Ctrl\n                ","$":{"x":"889.355755","dy":"30.400000000000002","id":"SvgjsTspan1230"}}]},{"$":{"y":"-94.136446","x":"511.107715","font-size":"19","id":"SvgjsText1233","text-anchor":"middle","font-family":"Helvetica","fill":"#ffffff"},"tspan":[{"_":"\n                    Mod\n                ","$":{"x":"511.107715","dy":"30.400000000000002","id":"SvgjsTspan1234"}}]}]}]}]}}
+
+/***/ },
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51364,11 +51454,11 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var Serializable_1 = __webpack_require__(312);
-	var ModuleConfigurations_1 = __webpack_require__(324);
-	var KeyMaps_1 = __webpack_require__(327);
-	var Macros_1 = __webpack_require__(339);
-	var assert_1 = __webpack_require__(314);
+	var Serializable_1 = __webpack_require__(313);
+	var ModuleConfigurations_1 = __webpack_require__(326);
+	var Keymaps_1 = __webpack_require__(329);
+	var Macros_1 = __webpack_require__(341);
+	var assert_1 = __webpack_require__(315);
 	var UhkConfiguration = (function (_super) {
 	    __extends(UhkConfiguration, _super);
 	    function UhkConfiguration() {
@@ -51381,7 +51471,7 @@
 	        this.hardwareId = jsObject.hardwareId;
 	        this.brandId = jsObject.brandId;
 	        this.moduleConfigurations = new ModuleConfigurations_1.ModuleConfigurations().fromJsObject(jsObject.moduleConfigurations);
-	        this.keyMaps = new KeyMaps_1.KeyMaps().fromJsObject(jsObject.keyMaps);
+	        this.keymaps = new Keymaps_1.Keymaps().fromJsObject(jsObject.keymaps);
 	        this.macros = new Macros_1.Macros().fromJsObject(jsObject.macros);
 	        this.epilogue = jsObject.epilogue;
 	        return this;
@@ -51393,7 +51483,7 @@
 	        this.hardwareId = buffer.readUInt8();
 	        this.brandId = buffer.readUInt8();
 	        this.moduleConfigurations = new ModuleConfigurations_1.ModuleConfigurations().fromBinary(buffer);
-	        this.keyMaps = new KeyMaps_1.KeyMaps().fromBinary(buffer);
+	        this.keymaps = new Keymaps_1.Keymaps().fromBinary(buffer);
 	        this.macros = new Macros_1.Macros().fromBinary(buffer);
 	        this.epilogue = buffer.readUInt32();
 	        return this;
@@ -51406,7 +51496,7 @@
 	            hardwareId: this.hardwareId,
 	            brandId: this.brandId,
 	            moduleConfigurations: this.moduleConfigurations.toJsObject(),
-	            keyMaps: this.keyMaps.toJsObject(),
+	            keymaps: this.keymaps.toJsObject(),
 	            macros: this.macros.toJsObject(),
 	            epilogue: this.epilogue
 	        };
@@ -51418,7 +51508,7 @@
 	        buffer.writeUInt8(this.hardwareId);
 	        buffer.writeUInt8(this.brandId);
 	        this.moduleConfigurations.toBinary(buffer);
-	        this.keyMaps.toBinary(buffer);
+	        this.keymaps.toBinary(buffer);
 	        this.macros.toBinary(buffer);
 	        buffer.writeUInt32(this.epilogue);
 	    };
@@ -51426,10 +51516,10 @@
 	        return "<UhkConfiguration signature=\"" + this.signature + "\">";
 	    };
 	    UhkConfiguration.prototype.getKeymap = function (keymapId) {
-	        var keyMaps = this.keyMaps.elements;
-	        for (var i = 0; i < keyMaps.length; ++i) {
-	            if (keymapId === keyMaps[i].id) {
-	                return keyMaps[i];
+	        var keymaps = this.keymaps.elements;
+	        for (var i = 0; i < keymaps.length; ++i) {
+	            if (keymapId === keymaps[i].id) {
+	                return keymaps[i];
 	            }
 	        }
 	    };
@@ -51459,7 +51549,7 @@
 
 
 /***/ },
-/* 324 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51468,8 +51558,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ClassArray_1 = __webpack_require__(325);
-	var ModuleConfiguration_1 = __webpack_require__(326);
+	var ClassArray_1 = __webpack_require__(327);
+	var ModuleConfiguration_1 = __webpack_require__(328);
 	var ModuleConfigurations = (function (_super) {
 	    __extends(ModuleConfigurations, _super);
 	    function ModuleConfigurations() {
@@ -51487,7 +51577,7 @@
 
 
 /***/ },
-/* 325 */
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51496,7 +51586,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Serializable_1 = __webpack_require__(312);
+	var Serializable_1 = __webpack_require__(313);
 	var ClassArray = (function (_super) {
 	    __extends(ClassArray, _super);
 	    function ClassArray() {
@@ -51547,7 +51637,7 @@
 
 
 /***/ },
-/* 326 */
+/* 328 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51565,8 +51655,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var Serializable_1 = __webpack_require__(312);
-	var assert_1 = __webpack_require__(314);
+	var Serializable_1 = __webpack_require__(313);
+	var assert_1 = __webpack_require__(315);
 	var ModuleConfiguration = (function (_super) {
 	    __extends(ModuleConfiguration, _super);
 	    function ModuleConfiguration() {
@@ -51625,7 +51715,7 @@
 
 
 /***/ },
-/* 327 */
+/* 329 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51634,26 +51724,26 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ClassArray_1 = __webpack_require__(325);
-	var KeyMap_1 = __webpack_require__(328);
-	var KeyMaps = (function (_super) {
-	    __extends(KeyMaps, _super);
-	    function KeyMaps() {
+	var ClassArray_1 = __webpack_require__(327);
+	var Keymap_1 = __webpack_require__(330);
+	var Keymaps = (function (_super) {
+	    __extends(Keymaps, _super);
+	    function Keymaps() {
 	        _super.apply(this, arguments);
 	    }
-	    KeyMaps.prototype.jsObjectToClass = function (jsObject) {
-	        return new KeyMap_1.KeyMap().fromJsObject(jsObject);
+	    Keymaps.prototype.jsObjectToClass = function (jsObject) {
+	        return new Keymap_1.Keymap().fromJsObject(jsObject);
 	    };
-	    KeyMaps.prototype.binaryToClass = function (buffer) {
-	        return new KeyMap_1.KeyMap().fromBinary(buffer);
+	    Keymaps.prototype.binaryToClass = function (buffer) {
+	        return new Keymap_1.Keymap().fromBinary(buffer);
 	    };
-	    return KeyMaps;
+	    return Keymaps;
 	}(ClassArray_1.ClassArray));
-	exports.KeyMaps = KeyMaps;
+	exports.Keymaps = Keymaps;
 
 
 /***/ },
-/* 328 */
+/* 330 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51671,15 +51761,15 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var Serializable_1 = __webpack_require__(312);
-	var Layers_1 = __webpack_require__(329);
-	var assert_1 = __webpack_require__(314);
-	var KeyMap = (function (_super) {
-	    __extends(KeyMap, _super);
-	    function KeyMap() {
+	var Serializable_1 = __webpack_require__(313);
+	var Layers_1 = __webpack_require__(331);
+	var assert_1 = __webpack_require__(315);
+	var Keymap = (function (_super) {
+	    __extends(Keymap, _super);
+	    function Keymap() {
 	        _super.apply(this, arguments);
 	    }
-	    KeyMap.prototype._fromJsObject = function (jsObject) {
+	    Keymap.prototype._fromJsObject = function (jsObject) {
 	        this.id = jsObject.id;
 	        this.isDefault = jsObject.isDefault;
 	        this.abbreviation = jsObject.abbreviation;
@@ -51687,7 +51777,7 @@
 	        this.layers = new Layers_1.Layers().fromJsObject(jsObject.layers);
 	        return this;
 	    };
-	    KeyMap.prototype._fromBinary = function (buffer) {
+	    Keymap.prototype._fromBinary = function (buffer) {
 	        this.id = buffer.readUInt8();
 	        this.isDefault = buffer.readBoolean();
 	        this.abbreviation = buffer.readString();
@@ -51695,7 +51785,7 @@
 	        this.layers = new Layers_1.Layers().fromBinary(buffer);
 	        return this;
 	    };
-	    KeyMap.prototype._toJsObject = function () {
+	    Keymap.prototype._toJsObject = function () {
 	        return {
 	            id: this.id,
 	            isDefault: this.isDefault,
@@ -51704,27 +51794,27 @@
 	            layers: this.layers.toJsObject()
 	        };
 	    };
-	    KeyMap.prototype._toBinary = function (buffer) {
+	    Keymap.prototype._toBinary = function (buffer) {
 	        buffer.writeUInt8(this.id);
 	        buffer.writeBoolean(this.isDefault);
 	        buffer.writeString(this.abbreviation);
 	        buffer.writeString(this.name);
 	        this.layers.toBinary(buffer);
 	    };
-	    KeyMap.prototype.toString = function () {
-	        return "<KeyMap id=\"" + this.id + "\" name=\"" + this.name + "\">";
+	    Keymap.prototype.toString = function () {
+	        return "<Keymap id=\"" + this.id + "\" name=\"" + this.name + "\">";
 	    };
 	    __decorate([
 	        assert_1.assertUInt8, 
 	        __metadata('design:type', Number)
-	    ], KeyMap.prototype, "id", void 0);
-	    return KeyMap;
+	    ], Keymap.prototype, "id", void 0);
+	    return Keymap;
 	}(Serializable_1.Serializable));
-	exports.KeyMap = KeyMap;
+	exports.Keymap = Keymap;
 
 
 /***/ },
-/* 329 */
+/* 331 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51733,8 +51823,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ClassArray_1 = __webpack_require__(325);
-	var Layer_1 = __webpack_require__(330);
+	var ClassArray_1 = __webpack_require__(327);
+	var Layer_1 = __webpack_require__(332);
 	var Layers = (function (_super) {
 	    __extends(Layers, _super);
 	    function Layers() {
@@ -51752,7 +51842,7 @@
 
 
 /***/ },
-/* 330 */
+/* 332 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51761,8 +51851,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Serializable_1 = __webpack_require__(312);
-	var Modules_1 = __webpack_require__(331);
+	var Serializable_1 = __webpack_require__(313);
+	var Modules_1 = __webpack_require__(333);
 	var Layer = (function (_super) {
 	    __extends(Layer, _super);
 	    function Layer() {
@@ -51793,7 +51883,7 @@
 
 
 /***/ },
-/* 331 */
+/* 333 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51802,8 +51892,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ClassArray_1 = __webpack_require__(325);
-	var Module_1 = __webpack_require__(332);
+	var ClassArray_1 = __webpack_require__(327);
+	var Module_1 = __webpack_require__(334);
 	var Modules = (function (_super) {
 	    __extends(Modules, _super);
 	    function Modules() {
@@ -51821,7 +51911,7 @@
 
 
 /***/ },
-/* 332 */
+/* 334 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51839,9 +51929,9 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var Serializable_1 = __webpack_require__(312);
-	var KeyActions_1 = __webpack_require__(333);
-	var assert_1 = __webpack_require__(314);
+	var Serializable_1 = __webpack_require__(313);
+	var KeyActions_1 = __webpack_require__(335);
+	var assert_1 = __webpack_require__(315);
 	var PointerRole;
 	(function (PointerRole) {
 	    PointerRole[PointerRole["none"] = 0] = "none";
@@ -51894,7 +51984,7 @@
 
 
 /***/ },
-/* 333 */
+/* 335 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
@@ -51903,17 +51993,17 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ClassArray_1 = __webpack_require__(325);
-	var DualRoleKeystrokeAction_1 = __webpack_require__(334);
-	var NoneAction_1 = __webpack_require__(335);
-	var KeystrokeAction_1 = __webpack_require__(313);
-	var KeyAction_1 = __webpack_require__(311);
-	var KeystrokeModifiersAction_1 = __webpack_require__(315);
-	var KeystrokeWithModifiersAction_1 = __webpack_require__(336);
-	var SwitchLayerAction_1 = __webpack_require__(316);
-	var SwitchKeymapAction_1 = __webpack_require__(318);
-	var MouseAction_1 = __webpack_require__(337);
-	var PlayMacroAction_1 = __webpack_require__(338);
+	var ClassArray_1 = __webpack_require__(327);
+	var DualRoleKeystrokeAction_1 = __webpack_require__(336);
+	var NoneAction_1 = __webpack_require__(337);
+	var KeystrokeAction_1 = __webpack_require__(314);
+	var KeyAction_1 = __webpack_require__(312);
+	var KeystrokeModifiersAction_1 = __webpack_require__(316);
+	var KeystrokeWithModifiersAction_1 = __webpack_require__(338);
+	var SwitchLayerAction_1 = __webpack_require__(317);
+	var SwitchKeymapAction_1 = __webpack_require__(319);
+	var MouseAction_1 = __webpack_require__(339);
+	var PlayMacroAction_1 = __webpack_require__(340);
 	var KeyActions = (function (_super) {
 	    __extends(KeyActions, _super);
 	    function KeyActions() {
@@ -51980,7 +52070,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ },
-/* 334 */
+/* 336 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -51998,8 +52088,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var KeyAction_1 = __webpack_require__(311);
-	var assert_1 = __webpack_require__(314);
+	var KeyAction_1 = __webpack_require__(312);
+	var assert_1 = __webpack_require__(315);
 	var LongPressAction;
 	(function (LongPressAction) {
 	    LongPressAction[LongPressAction["leftCtrl"] = 0] = "leftCtrl";
@@ -52060,7 +52150,7 @@
 
 
 /***/ },
-/* 335 */
+/* 337 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52069,7 +52159,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var KeyAction_1 = __webpack_require__(311);
+	var KeyAction_1 = __webpack_require__(312);
 	var NoneAction = (function (_super) {
 	    __extends(NoneAction, _super);
 	    function NoneAction() {
@@ -52100,7 +52190,7 @@
 
 
 /***/ },
-/* 336 */
+/* 338 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52118,8 +52208,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var KeyAction_1 = __webpack_require__(311);
-	var assert_1 = __webpack_require__(314);
+	var KeyAction_1 = __webpack_require__(312);
+	var assert_1 = __webpack_require__(315);
 	var KeystrokeWithModifiersAction = (function (_super) {
 	    __extends(KeystrokeWithModifiersAction, _super);
 	    function KeystrokeWithModifiersAction() {
@@ -52169,7 +52259,7 @@
 
 
 /***/ },
-/* 337 */
+/* 339 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52187,9 +52277,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var KeyAction_1 = __webpack_require__(311);
-	var assert_1 = __webpack_require__(314);
-	var MouseActionParam;
+	var KeyAction_1 = __webpack_require__(312);
+	var assert_1 = __webpack_require__(315);
 	(function (MouseActionParam) {
 	    MouseActionParam[MouseActionParam["leftClick"] = 0] = "leftClick";
 	    MouseActionParam[MouseActionParam["middleClick"] = 1] = "middleClick";
@@ -52204,7 +52293,8 @@
 	    MouseActionParam[MouseActionParam["scrollRight"] = 10] = "scrollRight";
 	    MouseActionParam[MouseActionParam["accelerate"] = 11] = "accelerate";
 	    MouseActionParam[MouseActionParam["decelerate"] = 12] = "decelerate";
-	})(MouseActionParam || (MouseActionParam = {}));
+	})(exports.MouseActionParam || (exports.MouseActionParam = {}));
+	var MouseActionParam = exports.MouseActionParam;
 	var MouseAction = (function (_super) {
 	    __extends(MouseAction, _super);
 	    function MouseAction() {
@@ -52243,7 +52333,7 @@
 
 
 /***/ },
-/* 338 */
+/* 340 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52261,8 +52351,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var KeyAction_1 = __webpack_require__(311);
-	var assert_1 = __webpack_require__(314);
+	var KeyAction_1 = __webpack_require__(312);
+	var assert_1 = __webpack_require__(315);
 	var PlayMacroAction = (function (_super) {
 	    __extends(PlayMacroAction, _super);
 	    function PlayMacroAction() {
@@ -52301,7 +52391,7 @@
 
 
 /***/ },
-/* 339 */
+/* 341 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52310,8 +52400,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ClassArray_1 = __webpack_require__(325);
-	var Macro_1 = __webpack_require__(340);
+	var ClassArray_1 = __webpack_require__(327);
+	var Macro_1 = __webpack_require__(342);
 	var Macros = (function (_super) {
 	    __extends(Macros, _super);
 	    function Macros() {
@@ -52329,7 +52419,7 @@
 
 
 /***/ },
-/* 340 */
+/* 342 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52347,9 +52437,9 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var Serializable_1 = __webpack_require__(312);
-	var MacroActions_1 = __webpack_require__(341);
-	var assert_1 = __webpack_require__(314);
+	var Serializable_1 = __webpack_require__(313);
+	var MacroActions_1 = __webpack_require__(343);
+	var assert_1 = __webpack_require__(315);
 	var Macro = (function (_super) {
 	    __extends(Macro, _super);
 	    function Macro() {
@@ -52400,7 +52490,7 @@
 
 
 /***/ },
-/* 341 */
+/* 343 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
@@ -52409,21 +52499,21 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ClassArray_1 = __webpack_require__(325);
-	var DelayMacroAction_1 = __webpack_require__(342);
-	var MacroAction_1 = __webpack_require__(343);
-	var HoldKeyMacroAction_1 = __webpack_require__(344);
-	var HoldModifiersMacroAction_1 = __webpack_require__(345);
-	var HoldMouseButtonsMacroAction_1 = __webpack_require__(346);
-	var MoveMouseMacroAction_1 = __webpack_require__(347);
-	var PressKeyMacroAction_1 = __webpack_require__(348);
-	var PressModifiersMacroAction_1 = __webpack_require__(349);
-	var PressMouseButtonsMacroAction_1 = __webpack_require__(350);
-	var ReleaseKeyMacroAction_1 = __webpack_require__(351);
-	var ReleaseModifiersMacroAction_1 = __webpack_require__(352);
-	var ReleaseMouseButtonsMacroAction_1 = __webpack_require__(353);
-	var ScrollMouseMacroAction_1 = __webpack_require__(354);
-	var TextMacroAction_1 = __webpack_require__(355);
+	var ClassArray_1 = __webpack_require__(327);
+	var DelayMacroAction_1 = __webpack_require__(344);
+	var MacroAction_1 = __webpack_require__(345);
+	var HoldKeyMacroAction_1 = __webpack_require__(346);
+	var HoldModifiersMacroAction_1 = __webpack_require__(347);
+	var HoldMouseButtonsMacroAction_1 = __webpack_require__(348);
+	var MoveMouseMacroAction_1 = __webpack_require__(349);
+	var PressKeyMacroAction_1 = __webpack_require__(350);
+	var PressModifiersMacroAction_1 = __webpack_require__(351);
+	var PressMouseButtonsMacroAction_1 = __webpack_require__(352);
+	var ReleaseKeyMacroAction_1 = __webpack_require__(353);
+	var ReleaseModifiersMacroAction_1 = __webpack_require__(354);
+	var ReleaseMouseButtonsMacroAction_1 = __webpack_require__(355);
+	var ScrollMouseMacroAction_1 = __webpack_require__(356);
+	var TextMacroAction_1 = __webpack_require__(357);
 	var MacroActions = (function (_super) {
 	    __extends(MacroActions, _super);
 	    function MacroActions() {
@@ -52506,7 +52596,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ },
-/* 342 */
+/* 344 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52524,8 +52614,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var DelayMacroAction = (function (_super) {
 	    __extends(DelayMacroAction, _super);
 	    function DelayMacroAction() {
@@ -52564,7 +52654,7 @@
 
 
 /***/ },
-/* 343 */
+/* 345 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52573,7 +52663,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Serializable_1 = __webpack_require__(312);
+	var Serializable_1 = __webpack_require__(313);
 	(function (MacroActionId) {
 	    MacroActionId[MacroActionId["PressKeyMacroAction"] = 0] = "PressKeyMacroAction";
 	    MacroActionId[MacroActionId["HoldKeyMacroAction"] = 1] = "HoldKeyMacroAction";
@@ -52631,7 +52721,7 @@
 
 
 /***/ },
-/* 344 */
+/* 346 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52649,8 +52739,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var HoldKeyMacroAction = (function (_super) {
 	    __extends(HoldKeyMacroAction, _super);
 	    function HoldKeyMacroAction() {
@@ -52689,7 +52779,7 @@
 
 
 /***/ },
-/* 345 */
+/* 347 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52707,8 +52797,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var HoldModifiersMacroAction = (function (_super) {
 	    __extends(HoldModifiersMacroAction, _super);
 	    function HoldModifiersMacroAction() {
@@ -52737,6 +52827,9 @@
 	    HoldModifiersMacroAction.prototype.toString = function () {
 	        return "<HoldModifiersMacroAction modifierMask=\"" + this.modifierMask + "\">";
 	    };
+	    HoldModifiersMacroAction.prototype.isModifierActive = function (modifier) {
+	        return (this.modifierMask & modifier) > 0;
+	    };
 	    __decorate([
 	        assert_1.assertUInt8, 
 	        __metadata('design:type', Number)
@@ -52747,7 +52840,7 @@
 
 
 /***/ },
-/* 346 */
+/* 348 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52765,8 +52858,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var HoldMouseButtonsMacroAction = (function (_super) {
 	    __extends(HoldMouseButtonsMacroAction, _super);
 	    function HoldMouseButtonsMacroAction() {
@@ -52805,7 +52898,7 @@
 
 
 /***/ },
-/* 347 */
+/* 349 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52823,8 +52916,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var MoveMouseMacroAction = (function (_super) {
 	    __extends(MoveMouseMacroAction, _super);
 	    function MoveMouseMacroAction() {
@@ -52871,7 +52964,7 @@
 
 
 /***/ },
-/* 348 */
+/* 350 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52889,8 +52982,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var PressKeyMacroAction = (function (_super) {
 	    __extends(PressKeyMacroAction, _super);
 	    function PressKeyMacroAction() {
@@ -52929,7 +53022,7 @@
 
 
 /***/ },
-/* 349 */
+/* 351 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -52947,8 +53040,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var PressModifiersMacroAction = (function (_super) {
 	    __extends(PressModifiersMacroAction, _super);
 	    function PressModifiersMacroAction() {
@@ -52977,6 +53070,9 @@
 	    PressModifiersMacroAction.prototype.toString = function () {
 	        return "<PressModifiersMacroAction modifierMask=\"" + this.modifierMask + "\">";
 	    };
+	    PressModifiersMacroAction.prototype.isModifierActive = function (modifier) {
+	        return (this.modifierMask & modifier) > 0;
+	    };
 	    __decorate([
 	        assert_1.assertUInt8, 
 	        __metadata('design:type', Number)
@@ -52987,7 +53083,7 @@
 
 
 /***/ },
-/* 350 */
+/* 352 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53005,8 +53101,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var PressMouseButtonsMacroAction = (function (_super) {
 	    __extends(PressMouseButtonsMacroAction, _super);
 	    function PressMouseButtonsMacroAction() {
@@ -53045,7 +53141,7 @@
 
 
 /***/ },
-/* 351 */
+/* 353 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53063,8 +53159,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var ReleaseKeyMacroAction = (function (_super) {
 	    __extends(ReleaseKeyMacroAction, _super);
 	    function ReleaseKeyMacroAction() {
@@ -53103,7 +53199,7 @@
 
 
 /***/ },
-/* 352 */
+/* 354 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53121,8 +53217,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var ReleaseModifiersMacroAction = (function (_super) {
 	    __extends(ReleaseModifiersMacroAction, _super);
 	    function ReleaseModifiersMacroAction() {
@@ -53151,6 +53247,9 @@
 	    ReleaseModifiersMacroAction.prototype.toString = function () {
 	        return "<ReleaseModifiersMacroAction modifierMask=\"" + this.modifierMask + "\">";
 	    };
+	    ReleaseModifiersMacroAction.prototype.isModifierActive = function (modifier) {
+	        return (this.modifierMask & modifier) > 0;
+	    };
 	    __decorate([
 	        assert_1.assertUInt8, 
 	        __metadata('design:type', Number)
@@ -53161,7 +53260,7 @@
 
 
 /***/ },
-/* 353 */
+/* 355 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53179,8 +53278,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var ReleaseMouseButtonsMacroAction = (function (_super) {
 	    __extends(ReleaseMouseButtonsMacroAction, _super);
 	    function ReleaseMouseButtonsMacroAction() {
@@ -53219,7 +53318,7 @@
 
 
 /***/ },
-/* 354 */
+/* 356 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53237,8 +53336,8 @@
 	var __metadata = (this && this.__metadata) || function (k, v) {
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var MacroAction_1 = __webpack_require__(343);
-	var assert_1 = __webpack_require__(314);
+	var MacroAction_1 = __webpack_require__(345);
+	var assert_1 = __webpack_require__(315);
 	var ScrollMouseMacroAction = (function (_super) {
 	    __extends(ScrollMouseMacroAction, _super);
 	    function ScrollMouseMacroAction() {
@@ -53285,7 +53384,7 @@
 
 
 /***/ },
-/* 355 */
+/* 357 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53294,7 +53393,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var MacroAction_1 = __webpack_require__(343);
+	var MacroAction_1 = __webpack_require__(345);
 	var TextMacroAction = (function (_super) {
 	    __extends(TextMacroAction, _super);
 	    function TextMacroAction() {
@@ -53329,7 +53428,7 @@
 
 
 /***/ },
-/* 356 */
+/* 358 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53373,7 +53472,7 @@
 
 
 /***/ },
-/* 357 */
+/* 359 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53417,7 +53516,7 @@
 
 
 /***/ },
-/* 358 */
+/* 360 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53461,7 +53560,7 @@
 
 
 /***/ },
-/* 359 */
+/* 361 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53509,7 +53608,7 @@
 
 
 /***/ },
-/* 360 */
+/* 362 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53523,7 +53622,7 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
-	var mapper_service_1 = __webpack_require__(317);
+	var mapper_service_1 = __webpack_require__(318);
 	var SvgSwitchKeymapKeyComponent = (function () {
 	    function SvgSwitchKeymapKeyComponent(mapperService) {
 	        this.mapperService = mapperService;
@@ -53557,7 +53656,7 @@
 
 
 /***/ },
-/* 361 */
+/* 363 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53572,17 +53671,18 @@
 	};
 	var core_1 = __webpack_require__(34);
 	var common_1 = __webpack_require__(208);
-	var keypress_tab_component_1 = __webpack_require__(362);
-	var layer_tab_component_1 = __webpack_require__(364);
-	var mouse_tab_component_1 = __webpack_require__(365);
-	var macro_tab_component_1 = __webpack_require__(367);
-	var keymap_tab_component_1 = __webpack_require__(368);
-	var none_tab_component_1 = __webpack_require__(369);
+	var keypress_tab_component_1 = __webpack_require__(364);
+	var layer_tab_component_1 = __webpack_require__(370);
+	var mouse_tab_component_1 = __webpack_require__(372);
+	var macro_tab_component_1 = __webpack_require__(374);
+	var keymap_tab_component_1 = __webpack_require__(378);
+	var none_tab_component_1 = __webpack_require__(380);
 	var PopoverComponent = (function () {
 	    function PopoverComponent(renderer, changeDetectorRef) {
 	        this.renderer = renderer;
 	        this.changeDetectorRef = changeDetectorRef;
 	        this.cancel = new core_1.EventEmitter();
+	        this.remap = new core_1.EventEmitter();
 	        this.activeListItemIndex = -1;
 	    }
 	    PopoverComponent.prototype.ngOnInit = function () { };
@@ -53594,6 +53694,14 @@
 	        this.cancel.emit(undefined);
 	    };
 	    PopoverComponent.prototype.onRemapKey = function () {
+	        try {
+	            var keyAction = this.selectedTab.toKeyAction();
+	            this.remap.emit(keyAction);
+	        }
+	        catch (e) {
+	            // TODO: show error dialog
+	            console.error(e);
+	        }
 	    };
 	    PopoverComponent.prototype.onListItemClick = function (index) {
 	        var listItems = this.liElementRefs.toArray().map(function (liElementRef) { return liElementRef.nativeElement; });
@@ -53608,15 +53716,23 @@
 	        __metadata('design:type', Object)
 	    ], PopoverComponent.prototype, "cancel", void 0);
 	    __decorate([
+	        core_1.Output(), 
+	        __metadata('design:type', Object)
+	    ], PopoverComponent.prototype, "remap", void 0);
+	    __decorate([
 	        core_1.ViewChildren('keypress,layer,mouse,macro,keymap,none'), 
 	        __metadata('design:type', core_1.QueryList)
 	    ], PopoverComponent.prototype, "liElementRefs", void 0);
+	    __decorate([
+	        core_1.ViewChild('tab'), 
+	        __metadata('design:type', Object)
+	    ], PopoverComponent.prototype, "selectedTab", void 0);
 	    PopoverComponent = __decorate([
 	        core_1.Component({
 	            moduleId: module.id,
 	            selector: 'popover',
-	            template: "\n        <div class=\"container-fluid\">\n            <div class=\"row\">\n                <div class=\"popover-title menu-tabs\">\n                    <ul class=\"nav nav-tabs popover-menu\">\n                        <li #keypress (click)=\"onListItemClick(0)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-keyboard-o\"></i>\n                                Keypress\n                            </a>\n                        </li>\n                        <li #layer (click)=\"onListItemClick(1)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-clone\"></i>\n                                Layer\n                            </a>\n                        </li>\n                        <li #mouse (click)=\"onListItemClick(2)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-mouse-pointer\"></i>\n                                Mouse\n                            </a>\n                        </li>\n                        <li #macro (click)=\"onListItemClick(3)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-play\"></i>\n                                Macro\n                            </a>\n                        </li>\n                        <li #keymap (click)=\"onListItemClick(4)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-keyboard-o\"></i>\n                                Keymap\n                            </a>\n                        </li>\n                        <li #none (click)=\"onListItemClick(5)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-ban\"></i>\n                                None\n                            </a>\n                        </li>\n                    </ul>\n                </div>\n            </div>\n            <div class=\"row\" [ngSwitch]=\"activeListItemIndex\">\n                <div class=\"popover-content\">\n                    <keypress-tab *ngSwitchWhen=\"0\"></keypress-tab>\n                    <layer-tab *ngSwitchWhen=\"1\"></layer-tab>\n                    <mouse-tab *ngSwitchWhen=\"2\"></mouse-tab>\n                    <macro-tab *ngSwitchWhen=\"3\"></macro-tab>\n                    <keymap-tab *ngSwitchWhen=\"4\"></keymap-tab>\n                    <none-tab *ngSwitchWhen=\"5\"></none-tab>\n                </div>\n            </div>\n            <div class=\"row\">\n                <div class=\"popover-action\">\n                    <button class=\"btn btn-sm btn-default\" type=\"button\" (click)=\"onCancelClick()\"> Cancel </button>\n                    <button class=\"btn btn-sm btn-primary\" type=\"button\" (click)=\"onRemapKey()\"> Remap Key </button>\n                </div>\n            </div>\n        </div>\n    ",
-	            styles: [__webpack_require__(370)],
+	            template: "\n        <div class=\"container-fluid\">\n            <div class=\"row\">\n                <div class=\"popover-title menu-tabs\">\n                    <ul class=\"nav nav-tabs popover-menu\">\n                        <li #keypress (click)=\"onListItemClick(0)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-keyboard-o\"></i>\n                                Keypress\n                            </a>\n                        </li>\n                        <li #layer (click)=\"onListItemClick(1)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-clone\"></i>\n                                Layer\n                            </a>\n                        </li>\n                        <li #mouse (click)=\"onListItemClick(2)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-mouse-pointer\"></i>\n                                Mouse\n                            </a>\n                        </li>\n                        <li #macro (click)=\"onListItemClick(3)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-play\"></i>\n                                Macro\n                            </a>\n                        </li>\n                        <li #keymap (click)=\"onListItemClick(4)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-keyboard-o\"></i>\n                                Keymap\n                            </a>\n                        </li>\n                        <li #none (click)=\"onListItemClick(5)\">\n                            <a class=\"menu-tabs--item\">\n                                <i class=\"fa fa-ban\"></i>\n                                None\n                            </a>\n                        </li>\n                    </ul>\n                </div>\n            </div>\n            <div class=\"row\" [ngSwitch]=\"activeListItemIndex\">\n                <keypress-tab #tab *ngSwitchWhen=\"0\" class=\"popover-content\"></keypress-tab>\n                <layer-tab #tab *ngSwitchWhen=\"1\" class=\"popover-content\"></layer-tab>\n                <mouse-tab #tab *ngSwitchWhen=\"2\" class=\"popover-content\"></mouse-tab>\n                <macro-tab #tab *ngSwitchWhen=\"3\" class=\"popover-content\"></macro-tab>\n                <keymap-tab #tab *ngSwitchWhen=\"4\" class=\"popover-content\"></keymap-tab>\n                <none-tab #tab *ngSwitchWhen=\"5\" class=\"popover-content\"></none-tab>\n            </div>\n            <div class=\"row\">\n                <div class=\"popover-action\">\n                    <button class=\"btn btn-sm btn-default\" type=\"button\" (click)=\"onCancelClick()\"> Cancel </button>\n                    <button class=\"btn btn-sm btn-primary\" type=\"button\" (click)=\"onRemapKey()\"> Remap Key </button>\n                </div>\n            </div>\n        </div>\n    ",
+	            styles: [__webpack_require__(381)],
 	            host: { 'class': 'popover' },
 	            directives: [
 	                common_1.NgSwitch,
@@ -53637,7 +53753,7 @@
 
 
 /***/ },
-/* 362 */
+/* 364 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53651,22 +53767,31 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
-	var capture_keystroke_button_component_1 = __webpack_require__(363);
+	var capture_keystroke_button_component_1 = __webpack_require__(365);
+	var icon_component_1 = __webpack_require__(366);
 	var KeypressTabComponent = (function () {
 	    function KeypressTabComponent() {
 	        this.leftModifiers = ['LShift', 'LCtrl', 'LSuper', 'LAlt'];
 	        this.rightModifiers = ['RShift', 'RCtrl', 'RSuper', 'RAlt'];
+	        this.scancodeGroups = __webpack_require__(368);
 	    }
 	    KeypressTabComponent.prototype.ngOnInit = function () { };
 	    KeypressTabComponent.prototype.getKeyAction = function () {
 	        return;
 	    };
+	    KeypressTabComponent.prototype.keyActionValid = function () {
+	        return false;
+	    };
+	    KeypressTabComponent.prototype.toKeyAction = function () {
+	        return undefined;
+	    };
 	    KeypressTabComponent = __decorate([
 	        core_1.Component({
 	            moduleId: module.id,
 	            selector: 'keypress-tab',
-	            template: "\n        <div class=\"scancode-options\" style=\"margin-bottom:10px; margin-top:2px\">\n            <b class=\"setting-label\" style=\"position:relative; top:2px;\">Scancode:</b>\n            <select class=\"scancode\" style=\"width: 200px\">\n\n            </select>\n            <capture-keystroke-button></capture-keystroke-button>\n        </div>\n        <div class=\"scancode-options\">\n            <b class=\"setting-label\" style=\"position:relative; top:-9px; margin-right:4px;\">Modifiers:</b>\n            <div class=\"btn-toolbar modifiers\" style=\"display:inline-block\">\n                <div class=\"btn-group btn-group-sm modifiers__left\">\n                    <button type=\"button\" class=\"btn btn-default\" *ngFor=\"let modifier of leftModifiers\">\n                        {{modifier}}\n                    </button>\n                </div>\n                <div class=\"btn-group btn-group-sm modifiers__right\">\n                    <button type=\"button\" class=\"btn btn-default\" *ngFor=\"let modifier of rightModifiers\">\n                        {{modifier}}\n                    </button>\n                </div>\n            </div>\n        </div>\n        <div style=\"margin-top: 3rem;\">\n            <b class=\"setting-label\" style=\"position:relative;\">Long press action:</b>\n            <select class=\"secondary-role\" style=\"width:135px\">\n\n            </select>\n            <i class=\"fa fa-question-circle\" style=\"margin-left:5px\" data-toggle=\"tooltip\" data-placement=\"right\"\n                    title=\"This action happens when the key is being held along with another key.\">\n            </i>\n        </div>\n    ",
-	            directives: [capture_keystroke_button_component_1.CaptureKeystrokeButtonComponent]
+	            template: "\n        <div class=\"scancode-options\" style=\"margin-bottom:10px; margin-top:2px\">\n            <b class=\"setting-label\" style=\"position:relative; top:2px;\">Scancode:</b>\n            <select class=\"scancode\" style=\"width: 200px\">\n                    <optgroup *ngFor=\"let group of scancodeGroups\" [label]=\"group.groupName\">\n                        <option *ngFor=\"let item of group.groupValues\">\n                            {{ item.label }}\n                        </option>\n                    </optgroup>\n            </select>\n            <capture-keystroke-button></capture-keystroke-button>\n        </div>\n        <div class=\"scancode-options\">\n            <b class=\"setting-label\" style=\"position:relative; top:-9px; margin-right:4px;\">Modifiers:</b>\n            <div class=\"btn-toolbar modifiers\" style=\"display:inline-block\">\n                <div class=\"btn-group btn-group-sm modifiers__left\">\n                    <button type=\"button\" class=\"btn btn-default\" *ngFor=\"let modifier of leftModifiers\">\n                        {{modifier}}\n                    </button>\n                </div>\n                <div class=\"btn-group btn-group-sm modifiers__right\">\n                    <button type=\"button\" class=\"btn btn-default\" *ngFor=\"let modifier of rightModifiers\">\n                        {{modifier}}\n                    </button>\n                </div>\n            </div>\n        </div>\n        <div class=\"long-press-container\">\n            <b class=\"setting-label\" style=\"position:relative;\">Long press action:</b>\n            <select class=\"secondary-role\">\n                    <option> None </option>\n                    <optgroup label=\"Modifiers\">\n                        <option> LShift </option>\n                        <option> LCtrl </option>\n                        <option> LSuper </option>\n                        <option> LAlt </option>\n                        <option> RShift </option>\n                        <option> RCtrl </option>\n                        <option> RSuper </option>\n                        <option> RAlt </option>\n                     </optgroup>\n                     <optgroup label=\"Layer switcher\">\n                        <option> Mod </option>\n                        <option> Mouse </option>\n                        <option> Fn </option>\n                     </optgroup>\n            </select>\n            <icon name=\"question-circle\" title=\"This action happens when the key is being held along with another key.\"></icon>\n        </div>\n    ",
+	            styles: [__webpack_require__(369)],
+	            directives: [capture_keystroke_button_component_1.CaptureKeystrokeButtonComponent, icon_component_1.IconComponent]
 	        }), 
 	        __metadata('design:paramtypes', [])
 	    ], KeypressTabComponent);
@@ -53676,7 +53801,7 @@
 
 
 /***/ },
-/* 363 */
+/* 365 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53715,7 +53840,7 @@
 
 
 /***/ },
-/* 364 */
+/* 366 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53729,15 +53854,656 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
+	var common_1 = __webpack_require__(208);
+	var IconComponent = (function () {
+	    function IconComponent() {
+	    }
+	    IconComponent.prototype.ngOnInit = function () { };
+	    __decorate([
+	        core_1.Input(), 
+	        __metadata('design:type', String)
+	    ], IconComponent.prototype, "name", void 0);
+	    IconComponent = __decorate([
+	        core_1.Component({
+	            moduleId: module.id,
+	            selector: 'icon',
+	            template: "\n        <div [ngSwitch]=\"name\">\n            <span *ngSwitchWhen=\"'option-vertical'\" class=\"glyphicon glyphicon-option-vertical\" aria-hidden=\"true\"></span>\n            <i *ngSwitchWhen=\"'square'\" class=\"fa fa-square\"></i>\n            <i *ngSwitchWhen=\"'mouse-pointer'\" class=\"fa fa-mouse-pointer\"></i>\n            <i *ngSwitchWhen=\"'clock'\" class=\"fa fa-clock-o\"></i>\n            <i *ngSwitchWhen=\"'trash'\" class=\"glyphicon glyphicon-trash action--trash\"></i>\n            <i *ngSwitchWhen=\"'pencil'\" class=\"glyphicon glyphicon-pencil action--edit\"></i>\n            <i *ngSwitchWhen=\"'question-circle'\" class =\"fa fa-question-circle\"></i>\n        </div>\n    ",
+	            directives: [common_1.NgSwitch, common_1.NgSwitchWhen],
+	            styles: [__webpack_require__(367)]
+	        }), 
+	        __metadata('design:paramtypes', [])
+	    ], IconComponent);
+	    return IconComponent;
+	}());
+	exports.IconComponent = IconComponent;
+
+
+/***/ },
+/* 367 */
+/***/ function(module, exports) {
+
+	module.exports = ":host {\n  display: flex;\n  align-items: center; }\n"
+
+/***/ },
+/* 368 */
+/***/ function(module, exports) {
+
+	module.exports = [
+		{
+			"groupName": "Alphabet",
+			"groupValues": [
+				{
+					"scancode": "4",
+					"searchTerm": "",
+					"label": "A"
+				},
+				{
+					"scancode": "5",
+					"searchTerm": "",
+					"label": "B"
+				},
+				{
+					"scancode": "6",
+					"searchTerm": "",
+					"label": "C"
+				},
+				{
+					"scancode": "7",
+					"searchTerm": "",
+					"label": "D"
+				},
+				{
+					"scancode": "8",
+					"searchTerm": "",
+					"label": "E"
+				},
+				{
+					"scancode": "9",
+					"searchTerm": "",
+					"label": "F"
+				},
+				{
+					"scancode": "10",
+					"searchTerm": "",
+					"label": "G"
+				},
+				{
+					"scancode": "11",
+					"searchTerm": "",
+					"label": "H"
+				},
+				{
+					"scancode": "12",
+					"searchTerm": "",
+					"label": "I"
+				},
+				{
+					"scancode": "13",
+					"searchTerm": "",
+					"label": "J"
+				},
+				{
+					"scancode": "14",
+					"searchTerm": "",
+					"label": "K"
+				},
+				{
+					"scancode": "15",
+					"searchTerm": "",
+					"label": "L"
+				},
+				{
+					"scancode": "16",
+					"searchTerm": "",
+					"label": "M"
+				},
+				{
+					"scancode": "17",
+					"searchTerm": "",
+					"label": "N"
+				},
+				{
+					"scancode": "18",
+					"searchTerm": "",
+					"label": "O"
+				},
+				{
+					"scancode": "19",
+					"searchTerm": "",
+					"label": "P"
+				},
+				{
+					"scancode": "20",
+					"searchTerm": "",
+					"label": "Q"
+				},
+				{
+					"scancode": "21",
+					"searchTerm": "",
+					"label": "R"
+				},
+				{
+					"scancode": "22",
+					"searchTerm": "",
+					"label": "S"
+				},
+				{
+					"scancode": "23",
+					"searchTerm": "",
+					"label": "T"
+				},
+				{
+					"scancode": "24",
+					"searchTerm": "",
+					"label": "U"
+				},
+				{
+					"scancode": "25",
+					"searchTerm": "",
+					"label": "V"
+				},
+				{
+					"scancode": "26",
+					"searchTerm": "",
+					"label": "W"
+				},
+				{
+					"scancode": "27",
+					"searchTerm": "",
+					"label": "X"
+				},
+				{
+					"scancode": "28",
+					"searchTerm": "",
+					"label": "Y"
+				},
+				{
+					"scancode": "29",
+					"searchTerm": "",
+					"label": "Z"
+				}
+			]
+		},
+		{
+			"groupName": "Number Row",
+			"groupValues": [
+				{
+					"scancode": "30",
+					"searchTerm": "",
+					"label": "1 !"
+				},
+				{
+					"scancode": "31",
+					"searchTerm": "",
+					"label": "2 @"
+				},
+				{
+					"scancode": "32",
+					"searchTerm": "",
+					"label": "3 #"
+				},
+				{
+					"scancode": "33",
+					"searchTerm": "",
+					"label": "4 $"
+				},
+				{
+					"scancode": "34",
+					"searchTerm": "",
+					"label": "5 %"
+				},
+				{
+					"scancode": "35",
+					"searchTerm": "",
+					"label": "6 ^"
+				},
+				{
+					"scancode": "36",
+					"searchTerm": "",
+					"label": "7 &"
+				},
+				{
+					"scancode": "37",
+					"searchTerm": "",
+					"label": "8 *"
+				},
+				{
+					"scancode": "38",
+					"searchTerm": "",
+					"label": "9 ("
+				},
+				{
+					"scancode": "39",
+					"searchTerm": "",
+					"label": "0 )"
+				}
+			]
+		},
+		{
+			"groupName": "Whitespace",
+			"groupValues": [
+				{
+					"scancode": "40",
+					"searchTerm": "Enter",
+					"label": "Return"
+				},
+				{
+					"scancode": "41",
+					"searchTerm": "",
+					"label": "Escape"
+				},
+				{
+					"scancode": "42",
+					"searchTerm": "",
+					"label": "Backspace"
+				},
+				{
+					"scancode": "43",
+					"searchTerm": "",
+					"label": "Tab"
+				},
+				{
+					"scancode": "44",
+					"searchTerm": "",
+					"label": "Spacebar"
+				}
+			]
+		},
+		{
+			"groupName": "Punctuation",
+			"groupValues": [
+				{
+					"scancode": "45",
+					"searchTerm": "",
+					"label": "- _"
+				},
+				{
+					"scancode": "46",
+					"searchTerm": "",
+					"label": "= +"
+				},
+				{
+					"scancode": "47",
+					"searchTerm": "",
+					"label": "[ {"
+				},
+				{
+					"scancode": "48",
+					"searchTerm": "",
+					"label": "] }"
+				},
+				{
+					"scancode": "49",
+					"searchTerm": "",
+					"label": "\\ |"
+				},
+				{
+					"scancode": "51",
+					"searchTerm": "",
+					"label": "; :"
+				},
+				{
+					"scancode": "52",
+					"searchTerm": "",
+					"label": "' \""
+				},
+				{
+					"scancode": "53",
+					"searchTerm": "",
+					"label": "` ~"
+				},
+				{
+					"scancode": "54",
+					"searchTerm": "",
+					"label": ", <"
+				},
+				{
+					"scancode": "55",
+					"searchTerm": "",
+					"label": ". >"
+				},
+				{
+					"scancode": "56",
+					"searchTerm": "",
+					"label": "/ ?"
+				}
+			]
+		},
+		{
+			"groupName": "Functionkeys",
+			"groupValues": [
+				{
+					"scancode": "58",
+					"searchTerm": "",
+					"label": "F1"
+				},
+				{
+					"scancode": "59",
+					"searchTerm": "",
+					"label": "F2"
+				},
+				{
+					"scancode": "60",
+					"searchTerm": "",
+					"label": "F3"
+				},
+				{
+					"scancode": "61",
+					"searchTerm": "",
+					"label": "F4"
+				},
+				{
+					"scancode": "62",
+					"searchTerm": "",
+					"label": "F5"
+				},
+				{
+					"scancode": "63",
+					"searchTerm": "",
+					"label": "F6"
+				},
+				{
+					"scancode": "64",
+					"searchTerm": "",
+					"label": "F7"
+				},
+				{
+					"scancode": "65",
+					"searchTerm": "",
+					"label": "F8"
+				},
+				{
+					"scancode": "66",
+					"searchTerm": "",
+					"label": "F9"
+				},
+				{
+					"scancode": "67",
+					"searchTerm": "",
+					"label": "F10"
+				},
+				{
+					"scancode": "68",
+					"searchTerm": "",
+					"label": "F11"
+				},
+				{
+					"scancode": "69",
+					"searchTerm": "",
+					"label": "F12"
+				}
+			]
+		},
+		{
+			"groupName": "Navigation",
+			"groupValues": [
+				{
+					"scancode": "73",
+					"searchTerm": "",
+					"label": "Insert"
+				},
+				{
+					"scancode": "74",
+					"searchTerm": "",
+					"label": "Home"
+				},
+				{
+					"scancode": "75",
+					"searchTerm": "PgUp pageup",
+					"label": "Page Up"
+				},
+				{
+					"scancode": "76",
+					"searchTerm": "Delete Forward",
+					"label": "Delete"
+				},
+				{
+					"scancode": "77",
+					"searchTerm": "",
+					"label": "End"
+				},
+				{
+					"scancode": "78",
+					"searchTerm": "PgDn pagedown",
+					"label": "Page Down"
+				},
+				{
+					"scancode": "79",
+					"searchTerm": "ArrowRight",
+					"label": "Right Arrow"
+				},
+				{
+					"scancode": "80",
+					"searchTerm": "ArrowLeft",
+					"label": "Left Arrow"
+				},
+				{
+					"scancode": "81",
+					"searchTerm": "ArrowDown",
+					"label": "Down Arrow"
+				},
+				{
+					"scancode": "82",
+					"searchTerm": "ArrowUp",
+					"label": "Up Arrow"
+				}
+			]
+		},
+		{
+			"groupName": "NumberPad",
+			"groupValues": [
+				{
+					"scancode": "83",
+					"searchTerm": "",
+					"label": "NumLock"
+				},
+				{
+					"scancode": "84",
+					"searchTerm": "slash",
+					"label": "/"
+				},
+				{
+					"scancode": "85",
+					"searchTerm": "asterisk",
+					"label": "*"
+				},
+				{
+					"scancode": "86",
+					"searchTerm": "minus",
+					"label": "-"
+				},
+				{
+					"scancode": "87",
+					"searchTerm": "plus",
+					"label": "+"
+				},
+				{
+					"scancode": "88",
+					"searchTerm": "",
+					"label": "Enter"
+				},
+				{
+					"scancode": "89",
+					"searchTerm": "one",
+					"label": "1"
+				},
+				{
+					"scancode": "90",
+					"searchTerm": "two",
+					"label": "2"
+				},
+				{
+					"scancode": "91",
+					"searchTerm": "three",
+					"label": "3"
+				},
+				{
+					"scancode": "92",
+					"searchTerm": "four",
+					"label": "4"
+				},
+				{
+					"scancode": "93",
+					"searchTerm": "five",
+					"label": "5"
+				},
+				{
+					"scancode": "94",
+					"searchTerm": "six",
+					"label": "6"
+				},
+				{
+					"scancode": "95",
+					"searchTerm": "seven",
+					"label": "7"
+				},
+				{
+					"scancode": "96",
+					"searchTerm": "eight",
+					"label": "8"
+				},
+				{
+					"scancode": "97",
+					"searchTerm": "nine",
+					"label": "9"
+				},
+				{
+					"scancode": "98",
+					"searchTerm": "zero",
+					"label": "0"
+				},
+				{
+					"scancode": "99",
+					"searchTerm": "Period",
+					"label": ","
+				},
+				{
+					"scancode": "176",
+					"searchTerm": "Doublezero",
+					"label": "00"
+				},
+				{
+					"scancode": "177",
+					"searchTerm": "Triplezero",
+					"label": "000"
+				}
+			]
+		},
+		{
+			"groupName": "Misc",
+			"groupValues": [
+				{
+					"scancode": "70",
+					"searchTerm": "",
+					"label": "PrintScreen"
+				},
+				{
+					"scancode": "57",
+					"searchTerm": "",
+					"label": "CapsLock"
+				},
+				{
+					"scancode": "71",
+					"searchTerm": "",
+					"label": "ScrollLock"
+				},
+				{
+					"scancode": "72",
+					"searchTerm": "",
+					"label": "Pause"
+				}
+			]
+		},
+		{
+			"groupName": "MediaKeys",
+			"groupValues": [
+				{
+					"scancode": "127",
+					"searchTerm": "",
+					"label": "Mute"
+				},
+				{
+					"scancode": "128",
+					"searchTerm": "",
+					"label": "Volume Up"
+				},
+				{
+					"scancode": "129",
+					"searchTerm": "",
+					"label": "Volume Down"
+				},
+				{
+					"scancode": "",
+					"searchTerm": "",
+					"label": "Next Track"
+				},
+				{
+					"scancode": "",
+					"searchTerm": "",
+					"label": "Previous Track"
+				},
+				{
+					"scancode": "",
+					"searchTerm": "",
+					"label": "Stop"
+				},
+				{
+					"scancode": "",
+					"searchTerm": "",
+					"label": "Play/Pause"
+				},
+				{
+					"scancode": "",
+					"searchTerm": "",
+					"label": "Eject"
+				}
+			]
+		}
+	];
+
+/***/ },
+/* 369 */
+/***/ function(module, exports) {
+
+	module.exports = ":host {\n  display: flex;\n  flex-direction: column; }\n  :host .long-press-container {\n    display: flex;\n    margin-top: 3rem; }\n    :host .long-press-container b {\n      margin-right: 0.6em; }\n    :host .long-press-container .secondary-role {\n      width: 135px; }\n    :host .long-press-container icon {\n      margin-left: 0.6em; }\n"
+
+/***/ },
+/* 370 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+	    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+	    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+	    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = (this && this.__metadata) || function (k, v) {
+	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var core_1 = __webpack_require__(34);
+	var SwitchLayerAction_1 = __webpack_require__(317);
 	var LayerTabComponent = (function () {
 	    function LayerTabComponent() {
+	        this.toggle = false;
+	        this.layer = SwitchLayerAction_1.LayerName.mod;
 	    }
 	    LayerTabComponent.prototype.ngOnInit = function () { };
+	    LayerTabComponent.prototype.keyActionValid = function () {
+	        return true;
+	    };
+	    LayerTabComponent.prototype.toKeyAction = function () {
+	        var keyAction = new SwitchLayerAction_1.SwitchLayerAction();
+	        keyAction.isLayerToggleable = this.toggle;
+	        keyAction.layer = this.layer;
+	        return keyAction;
+	    };
 	    LayerTabComponent = __decorate([
 	        core_1.Component({
 	            moduleId: module.id,
 	            selector: 'layer-tab',
-	            template: "\n        <select>\n            <option> Activate </option>\n            <option> Toggle </option>\n        </select>\n        <span>the</span>\n        <select>\n            <option> Mod </option>\n            <option> Fn </option>\n            <option> Mouse </option>\n        </select>\n        <span>\n        layer by holding this key.\n        </span>\n    "
+	            template: "\n        <select [(ngModel)]=\"toggle\">\n            <option [ngValue]=\"false\"> Activate </option>\n            <option [ngValue]=\"true\"> Toggle </option>\n        </select>\n        <span>the</span>\n        <select [(ngModel)]=\"layer\">\n            <option [ngValue]=\"0\"> Mod </option>\n            <option [ngValue]=\"1\"> Fn </option>\n            <option [ngValue]=\"2\"> Mouse </option>\n        </select>\n        <span>\n        layer by holding this key.\n        </span>\n    ",
+	            styles: [__webpack_require__(371)]
 	        }), 
 	        __metadata('design:paramtypes', [])
 	    ], LayerTabComponent);
@@ -53747,7 +54513,13 @@
 
 
 /***/ },
-/* 365 */
+/* 371 */
+/***/ function(module, exports) {
+
+	module.exports = ":host {\n  display: flex; }\n  :host span {\n    margin: 0 5px; }\n"
+
+/***/ },
+/* 372 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53761,18 +54533,52 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
+	var common_1 = __webpack_require__(208);
+	var MouseAction_1 = __webpack_require__(339);
 	var MouseTabComponent = (function () {
-	    function MouseTabComponent() {
+	    function MouseTabComponent(renderer) {
+	        this.renderer = renderer;
+	        this.MouseActionParam = MouseAction_1.MouseActionParam;
+	        this.selectedIndex = 0;
 	    }
 	    MouseTabComponent.prototype.ngOnInit = function () { };
+	    MouseTabComponent.prototype.keyActionValid = function () {
+	        return !!this.mouseActionParam;
+	    };
+	    MouseTabComponent.prototype.toKeyAction = function () {
+	        if (!this.keyActionValid()) {
+	            throw new Error('KeyAction is not valid. No selected mouse action!');
+	        }
+	        var mouseAction = new MouseAction_1.MouseAction();
+	        mouseAction.mouseAction = this.mouseActionParam;
+	        return mouseAction;
+	    };
+	    MouseTabComponent.prototype.changePage = function (index) {
+	        if (index < -1 || index > 3) {
+	            console.error("Invalid index error: " + index);
+	            return;
+	        }
+	        this.selectedIndex = index;
+	        this.mouseActionParam = undefined;
+	        this.selectedButton = undefined;
+	    };
+	    MouseTabComponent.prototype.onMouseActionClick = function (target, mouseActionParam) {
+	        if (this.selectedButton) {
+	            this.renderer.setElementClass(this.selectedButton, 'btn-primary', false);
+	        }
+	        this.selectedButton = target;
+	        this.renderer.setElementClass(target, 'btn-primary', true);
+	        this.mouseActionParam = mouseActionParam;
+	    };
 	    MouseTabComponent = __decorate([
 	        core_1.Component({
 	            moduleId: module.id,
 	            selector: 'mouse-tab',
-	            template: "\n        <div class=\"mouse-action\">\n            <ul class=\"nav nav-pills nav-stacked\">\n                <li><a>     Move    </a></li>\n                <li><a>     Scroll  </a></li>\n                <li><a>     Click   </a></li>\n                <li><a>     Speed   </a></li>\n            </ul>\n        </div>\n        <div class=\"details\">\n        </div>\n    ",
-	            styles: [__webpack_require__(366)]
+	            template: "\n        <div class=\"mouse-action col-sm-4\">\n            <ul class=\"nav nav-pills nav-stacked\">\n                <li (click)=\"changePage(0)\" [ngClass]=\"{active: selectedIndex===0}\"><a>     Move    </a></li>\n                <li (click)=\"changePage(1)\" [ngClass]=\"{active: selectedIndex===1}\"><a>     Scroll  </a></li>\n                <li (click)=\"changePage(2)\" [ngClass]=\"{active: selectedIndex===2}\"><a>     Click   </a></li>\n                <li (click)=\"changePage(3)\" [ngClass]=\"{active: selectedIndex===3}\"><a>     Speed   </a></li>\n            </ul>\n        </div>\n        <div class=\"details col-sm-8\" [ngSwitch]=\"selectedIndex\">\n            <div *ngSwitchWhen=\"0\" class=\"mouse__config mouse__config--move text-center\">\n                <div class=\"row\">\n                    <button type=\"button\" class=\"btn btn-default btn-lg\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.moveUp)\">\n                        <i class=\"fa fa-arrow-up\"></i>\n                    </button>\n                </div>\n                <div class=\"row\">\n                    <button type=\"button\" class=\"btn btn-default btn-lg\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.moveLeft)\">\n                        <i class=\"fa fa-arrow-left\"></i>\n                    </button>\n                    <button type=\"button\" class=\"btn btn-default btn-lg btn-placeholder\">\n                        <i class=\"fa fa-square\"></i>\n                    </button>\n                    <button type=\"button\" class=\"btn btn-default btn-lg\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.moveRight)\">\n                        <i class=\"fa fa-arrow-right\"></i>\n                    </button>\n                </div>\n                <div class=\"row\">\n                    <button type=\"button\" class=\"btn btn-default btn-lg\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.moveDown)\">\n                        <i class=\"fa fa-arrow-down\"></i>\n                    </button>\n                </div>\n            </div>\n            <div *ngSwitchWhen=\"1\" class=\"mouse__config mouse__config--scroll text-center\">\n                <div class=\"row\">\n                    <button type=\"button\" class=\"btn btn-default btn-lg\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.scrollUp)\">\n                        <i class=\"fa fa-angle-double-up\"></i>\n                    </button>\n                </div>\n                <div class=\"row\">\n                    <button type=\"button\" class=\"btn btn-default btn-lg\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.scrollLeft)\">\n                        <i class=\"fa fa-angle-double-left\"></i>\n                    </button>\n                    <button type=\"button\" class=\"btn btn-default btn-lg btn-placeholder\">\n                        <i class=\"fa fa-square\"></i>\n                    </button>\n                    <button type=\"button\" class=\"btn btn-default btn-lg\"\n                        (click)=\"onMouseActionClick($event.target, MouseActionParam.scrollRight)\">\n                        <i class=\"fa fa-angle-double-right\"></i>\n                    </button>\n                </div>\n                <div class=\"row\">\n                    <button type=\"button\" class=\"btn btn-default btn-lg\"\n                        (click)=\"onMouseActionClick($event.target, MouseActionParam.scrollDown)\">\n                        <i class=\"fa fa-angle-double-down\"></i>\n                    </button>\n                </div>\n            </div>\n            <div *ngSwitchWhen=\"2\" class=\"mouse__config mouse__config--click\">\n                <div class=\"btn-group col-xs-12\" role=\"group\">\n                    <button type=\"button\" class=\"btn btn-default col-xs-4\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.leftClick)\">Left</button>\n                    <button type=\"button\" class=\"btn btn-default col-xs-4\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.middleClick)\">Middle</button>\n                    <button type=\"button\" class=\"btn btn-default col-xs-4\"\n                            (click)=\"onMouseActionClick($event.target, MouseActionParam.rightClick)\">Right</button>\n                </div>\n            </div>\n            <div *ngSwitchWhen=\"3\" class=\"mouse__config mouse__config--speed text-center\">\n                <div class=\"help-text--mouse-speed text-left\">\n                    <p>Press this key along with mouse movement/scrolling to accelerate/decelerate the speed of the action.</p>\n                    <p>You can set the multiplier in <a href=\"#\" title=\"link to the setting\">link to setting</a>.</p>\n                </div>\n                <div class=\"btn-group btn-group-lg\" role=\"group\">\n                    <button type=\"button\" class=\"btn btn-default\"\n                        (click)=\"onMouseActionClick($event.target, MouseActionParam.decelerate)\">-</button>\n                    <button type=\"button\" class=\"btn btn-default\"\n                        (click)=\"onMouseActionClick($event.target, MouseActionParam.accelerate)\">+</button>\n                </div>\n            </div>\n            <div *ngSwitchDefault>\n            </div>\n        </div>\n    ",
+	            styles: [__webpack_require__(373)],
+	            directives: [common_1.NgSwitch, common_1.NgSwitchWhen, common_1.NgSwitchDefault]
 	        }), 
-	        __metadata('design:paramtypes', [])
+	        __metadata('design:paramtypes', [core_1.Renderer])
 	    ], MouseTabComponent);
 	    return MouseTabComponent;
 	}());
@@ -53780,13 +54586,13 @@
 
 
 /***/ },
-/* 366 */
+/* 373 */
 /***/ function(module, exports) {
 
-	module.exports = ":host {\n  display: flex; }\n\n.mouse-action {\n  flex: 1;\n  border-right: 1px solid black; }\n\n.details {\n  flex: 2; }\n"
+	module.exports = ":host {\n  display: flex; }\n  :host .mouse-action ul {\n    border-right: 1px solid #ccc; }\n    :host .mouse-action ul li a {\n      border-top-right-radius: 0;\n      border-bottom-right-radius: 0; }\n    :host .mouse-action ul li.active a:after {\n      content: '';\n      display: block;\n      position: absolute;\n      width: 0;\n      height: 0;\n      top: 0;\n      right: -4rem;\n      border-color: transparent transparent transparent #337ab7;\n      border-style: solid;\n      border-width: 2rem; }\n  :host .help-text--mouse-speed {\n    margin-bottom: 2rem;\n    font-size: 0.9em;\n    color: #666; }\n    :host .help-text--mouse-speed p {\n      margin: 0; }\n  :host .details .btn-placeholder {\n    visibility: hidden; }\n"
 
 /***/ },
-/* 367 */
+/* 374 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53800,17 +54606,38 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
+	var uhk_configuration_service_1 = __webpack_require__(320);
+	var PlayMacroAction_1 = __webpack_require__(340);
+	var macro_item_component_1 = __webpack_require__(375);
 	var MacroTabComponent = (function () {
-	    function MacroTabComponent() {
+	    function MacroTabComponent(uhkConfigurationService) {
+	        this.uhkConfigurationService = uhkConfigurationService;
+	        this.macros = [];
+	        this.selectedMacroIndex = -1;
 	    }
-	    MacroTabComponent.prototype.ngOnInit = function () { };
+	    MacroTabComponent.prototype.ngOnInit = function () {
+	        this.macros = this.uhkConfigurationService.getUhkConfiguration().macros.elements;
+	    };
+	    MacroTabComponent.prototype.keyActionValid = function () {
+	        return this.selectedMacroIndex !== -1;
+	    };
+	    MacroTabComponent.prototype.toKeyAction = function () {
+	        if (!this.keyActionValid()) {
+	            throw new Error('KeyAction is not valid. No selected macro!');
+	        }
+	        var keymapAction = new PlayMacroAction_1.PlayMacroAction();
+	        keymapAction.macroId = this.macros[this.selectedMacroIndex].id;
+	        return keymapAction;
+	    };
 	    MacroTabComponent = __decorate([
 	        core_1.Component({
 	            moduleId: module.id,
 	            selector: 'macro-tab',
-	            template: "\n        Macro\n    "
+	            template: "\n        <div class=\"macro-selector\">\n            <b> Play macro: </b>\n            <select [(ngModel)]=\"selectedMacroIndex\">\n                <option [ngValue]=\"-1\"> Select macro </option>\n                <option *ngFor=\"let macro of macros; let index=index\" [ngValue]=\"index\"> {{ macro.name }} </option>\n            </select>\n        </div>\n        <div class=\"macro-action-container\">\n            <template [ngIf]=\"selectedMacroIndex >= 0\">\n                <macro-item *ngFor=\"let macroAction of macros[selectedMacroIndex].macroActions.elements\"\n                            [macroAction]=\"macroAction\">\n                </macro-item>\n            </template>\n        </div>\n    ",
+	            styles: [__webpack_require__(377)],
+	            directives: [macro_item_component_1.MacroItemComponent]
 	        }), 
-	        __metadata('design:paramtypes', [])
+	        __metadata('design:paramtypes', [uhk_configuration_service_1.UhkConfigurationService])
 	    ], MacroTabComponent);
 	    return MacroTabComponent;
 	}());
@@ -53818,7 +54645,7 @@
 
 
 /***/ },
-/* 368 */
+/* 375 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53832,17 +54659,198 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
-	var KeymapTabComponent = (function () {
-	    function KeymapTabComponent() {
+	var common_1 = __webpack_require__(208);
+	var MacroAction_1 = __webpack_require__(345);
+	var DelayMacroAction_1 = __webpack_require__(344);
+	var HoldModifiersMacroAction_1 = __webpack_require__(347);
+	var MoveMouseMacroAction_1 = __webpack_require__(349);
+	var PressModifiersMacroAction_1 = __webpack_require__(351);
+	var ReleaseModifiersMacroAction_1 = __webpack_require__(354);
+	var ScrollMouseMacroAction_1 = __webpack_require__(356);
+	var TextMacroAction_1 = __webpack_require__(357);
+	var icon_component_1 = __webpack_require__(366);
+	var KeystrokeModifiersAction_1 = __webpack_require__(316);
+	var MacroItemComponent = (function () {
+	    function MacroItemComponent() {
 	    }
-	    KeymapTabComponent.prototype.ngOnInit = function () { };
+	    MacroItemComponent.prototype.ngOnInit = function () {
+	        this.updateView();
+	    };
+	    MacroItemComponent.prototype.ngOnChanges = function () {
+	        // TODO: check if macroAction changed
+	        this.updateView();
+	    };
+	    MacroItemComponent.prototype.updateView = function () {
+	        this.title = this.macroAction.constructor.name;
+	        if (this.macroAction instanceof MoveMouseMacroAction_1.MoveMouseMacroAction) {
+	            this.iconName = 'mouse-pointer';
+	            this.title = 'Move pointer';
+	            var action = this.macroAction;
+	            var needAnd = void 0;
+	            if (Math.abs(action.x) > 0) {
+	                this.title += " by " + Math.abs(action.x) + "px " + (action.x > 0 ? 'left' : 'right') + "ward";
+	                needAnd = true;
+	            }
+	            if (Math.abs(action.y) > 0) {
+	                this.title += " " + (needAnd ? 'and' : 'by') + " " + Math.abs(action.y) + "px " + (action.y > 0 ? 'down' : 'up') + "ward";
+	            }
+	        }
+	        else if (this.macroAction instanceof DelayMacroAction_1.DelayMacroAction) {
+	            this.iconName = 'clock';
+	            var action = this.macroAction;
+	            this.title = "Delay of " + action.delay + "ms";
+	        }
+	        else if (this.macroAction instanceof TextMacroAction_1.TextMacroAction) {
+	            var action = this.macroAction;
+	            this.title = "Write text: " + action.text;
+	        }
+	        else if (this.macroAction instanceof ScrollMouseMacroAction_1.ScrollMouseMacroAction) {
+	            this.iconName = 'mouse-pointer';
+	            this.title = 'Scroll';
+	            var action = this.macroAction;
+	            var needAnd = void 0;
+	            if (Math.abs(action.x) > 0) {
+	                this.title += " by " + Math.abs(action.x) + "px " + (action.x > 0 ? 'left' : 'right') + "ward";
+	                needAnd = true;
+	            }
+	            if (Math.abs(action.y) > 0) {
+	                this.title += " " + (needAnd ? 'and' : 'by') + " " + Math.abs(action.y) + "px " + (action.y > 0 ? 'down' : 'up') + "ward";
+	            }
+	        }
+	        else if (this.macroAction instanceof PressModifiersMacroAction_1.PressModifiersMacroAction) {
+	            this.iconName = 'square';
+	            var action = this.macroAction;
+	            if (action.modifierMask === 0) {
+	                this.title = 'Invalid PressModifiersMacroAction!';
+	                return;
+	            }
+	            this.title = 'Press: ';
+	            for (var i = KeystrokeModifiersAction_1.KeyModifiers.leftCtrl; i !== KeystrokeModifiersAction_1.KeyModifiers.rightCtrl; i <<= 1) {
+	                if (action.isModifierActive(i)) {
+	                    this.title += ' ' + KeystrokeModifiersAction_1.KeyModifiers[i];
+	                }
+	            }
+	        }
+	        else if (this.macroAction instanceof HoldModifiersMacroAction_1.HoldModifiersMacroAction) {
+	            this.iconName = 'square';
+	            var action = this.macroAction;
+	            if (action.modifierMask === 0) {
+	                this.title = 'Invalid HoldModifiersMacroAction!';
+	                return;
+	            }
+	            this.title = 'Hold: ';
+	            for (var i = KeystrokeModifiersAction_1.KeyModifiers.leftCtrl; i !== KeystrokeModifiersAction_1.KeyModifiers.rightCtrl; i <<= 1) {
+	                if (action.isModifierActive(i)) {
+	                    this.title += ' ' + KeystrokeModifiersAction_1.KeyModifiers[i];
+	                }
+	            }
+	        }
+	        else if (this.macroAction instanceof ReleaseModifiersMacroAction_1.ReleaseModifiersMacroAction) {
+	            this.iconName = 'square';
+	            var action = this.macroAction;
+	            if (action.modifierMask === 0) {
+	                this.title = 'Invalid ReleaseModifiersMacroAction!';
+	                return;
+	            }
+	            this.title = 'Release: ';
+	            for (var i = KeystrokeModifiersAction_1.KeyModifiers.leftCtrl; i !== KeystrokeModifiersAction_1.KeyModifiers.rightCtrl; i <<= 1) {
+	                if (action.isModifierActive(i)) {
+	                    this.title += ' ' + KeystrokeModifiersAction_1.KeyModifiers[i];
+	                }
+	            }
+	        }
+	        // TODO: finish for all MacroAction
+	    };
+	    __decorate([
+	        core_1.Input(), 
+	        __metadata('design:type', MacroAction_1.MacroAction)
+	    ], MacroItemComponent.prototype, "macroAction", void 0);
+	    __decorate([
+	        core_1.Input(), 
+	        __metadata('design:type', Boolean)
+	    ], MacroItemComponent.prototype, "editable", void 0);
+	    __decorate([
+	        core_1.Input(), 
+	        __metadata('design:type', Boolean)
+	    ], MacroItemComponent.prototype, "deletable", void 0);
+	    __decorate([
+	        core_1.Input(), 
+	        __metadata('design:type', Boolean)
+	    ], MacroItemComponent.prototype, "moveable", void 0);
+	    MacroItemComponent = __decorate([
+	        core_1.Component({
+	            moduleId: module.id,
+	            selector: 'macro-item',
+	            template: "\n         <icon *ngIf=\"moveable\" name=\"option-vertical\"></icon>\n         <icon [name]=\"iconName\"></icon>\n         <div> {{ title }} </div>\n         <icon *ngIf=\"deletable\" name=\"trash\"></icon>\n         <icon *ngIf=\"editable\" name=\"pencil\"></icon>\n    ",
+	            styles: [__webpack_require__(376)],
+	            directives: [common_1.NgSwitch, common_1.NgSwitchWhen, icon_component_1.IconComponent]
+	        }), 
+	        __metadata('design:paramtypes', [])
+	    ], MacroItemComponent);
+	    return MacroItemComponent;
+	}());
+	exports.MacroItemComponent = MacroItemComponent;
+
+
+/***/ },
+/* 376 */
+/***/ function(module, exports) {
+
+	module.exports = ":host {\n  display: flex;\n  flex-shrink: 0; }\n  :host icon {\n    margin: 0 5px; }\n  :host div {\n    display: flex;\n    flex: 1; }\n"
+
+/***/ },
+/* 377 */
+/***/ function(module, exports) {
+
+	module.exports = ":host {\n  display: flex;\n  flex-direction: column; }\n  :host .macro-selector {\n    display: flex;\n    margin-top: 2px; }\n    :host .macro-selector b {\n      margin-right: 7px; }\n    :host .macro-selector select {\n      flex: 1; }\n  :host .macro-action-container {\n    display: flex;\n    flex-direction: column;\n    min-height: 200px;\n    max-height: 300px;\n    margin: 20px 0;\n    overflow-x: hidden;\n    overflow-y: auto; }\n    :host .macro-action-container macro-item {\n      border: 1px solid #ddd;\n      padding: 10px;\n      margin-bottom: -1px; }\n    :host .macro-action-container macro-item:first-child {\n      border-top-left-radius: 4px;\n      border-top-right-radius: 4px; }\n    :host .macro-action-container macro-item:last-child {\n      border-bottom-left-radius: 4px;\n      border-bottom-right-radius: 4px;\n      margin-bottom: 0; }\n"
+
+/***/ },
+/* 378 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+	    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+	    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+	    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = (this && this.__metadata) || function (k, v) {
+	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var core_1 = __webpack_require__(34);
+	var uhk_configuration_service_1 = __webpack_require__(320);
+	var svg_keyboard_component_1 = __webpack_require__(309);
+	var SwitchKeymapAction_1 = __webpack_require__(319);
+	var KeymapTabComponent = (function () {
+	    function KeymapTabComponent(uhkConfigurationService) {
+	        this.uhkConfigurationService = uhkConfigurationService;
+	        this.selectedKeymapIndex = -1;
+	        this.keymaps = [];
+	    }
+	    KeymapTabComponent.prototype.ngOnInit = function () {
+	        this.keymaps = this.uhkConfigurationService.getUhkConfiguration().keymaps.elements;
+	    };
+	    KeymapTabComponent.prototype.keyActionValid = function () {
+	        return this.selectedKeymapIndex !== -1;
+	    };
+	    KeymapTabComponent.prototype.toKeyAction = function () {
+	        if (!this.keyActionValid()) {
+	            throw new Error('KeyAction is not valid. No selected keymap!');
+	        }
+	        var keymapAction = new SwitchKeymapAction_1.SwitchKeymapAction();
+	        keymapAction.keymapId = this.keymaps[this.selectedKeymapIndex].id;
+	        return keymapAction;
+	    };
 	    KeymapTabComponent = __decorate([
 	        core_1.Component({
 	            moduleId: module.id,
 	            selector: 'keymap-tab',
-	            template: "\n        Keymap\n    "
+	            template: "\n        <div>\n            <b>Switch to keymap:</b>\n            <select class=\"layout-switcher\" [(ngModel)]=\"selectedKeymapIndex\">\n                <option [ngValue]=\"-1\"> Select keymap </option>\n                <option *ngFor=\"let keymap of keymaps; let index=index\" [ngValue]=\"index\"> {{ keymap.name }} </option>\n            </select>\n        </div>\n        <div>\n            <div>\n                <img *ngIf=\"selectedKeymapIndex === -1\" src=\"images/base-layer--blank.svg\">\n            </div>\n            <svg-keyboard *ngIf=\"selectedKeymapIndex !== -1\"\n                        [moduleConfig]=\"keymaps[selectedKeymapIndex].layers.elements[0].modules.elements\">\n            </svg-keyboard>\n        </div>\n    ",
+	            styles: [__webpack_require__(379)],
+	            directives: [svg_keyboard_component_1.SvgKeyboardComponent]
 	        }), 
-	        __metadata('design:paramtypes', [])
+	        __metadata('design:paramtypes', [uhk_configuration_service_1.UhkConfigurationService])
 	    ], KeymapTabComponent);
 	    return KeymapTabComponent;
 	}());
@@ -53850,7 +54858,13 @@
 
 
 /***/ },
-/* 369 */
+/* 379 */
+/***/ function(module, exports) {
+
+	module.exports = ":host {\n  display: flex;\n  flex-direction: column;\n  margin-top: 2px; }\n  :host > div {\n    display: flex; }\n    :host > div b {\n      padding-right: 10px; }\n    :host > div select {\n      flex: 1; }\n  :host > div:last-child {\n    margin-top: 10px; }\n    :host > div:last-child img {\n      max-height: 100%;\n      max-width: 100%; }\n"
+
+/***/ },
+/* 380 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53864,10 +54878,17 @@
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(34);
+	var NoneAction_1 = __webpack_require__(337);
 	var NoneTabComponent = (function () {
 	    function NoneTabComponent() {
 	    }
 	    NoneTabComponent.prototype.ngOnInit = function () { };
+	    NoneTabComponent.prototype.keyActionValid = function () {
+	        return true;
+	    };
+	    NoneTabComponent.prototype.toKeyAction = function () {
+	        return new NoneAction_1.NoneAction();
+	    };
 	    NoneTabComponent = __decorate([
 	        core_1.Component({
 	            moduleId: module.id,
@@ -53883,42 +54904,22 @@
 
 
 /***/ },
-/* 370 */
+/* 381 */
 /***/ function(module, exports) {
 
-	module.exports = ":host {\n  display: flex;\n  flex-direction: column;\n  min-width: 577px;\n  padding: 0; }\n\n.popover-action {\n  padding: 8px 14px;\n  margin: 0;\n  font-size: 14px;\n  background-color: #f7f7f7;\n  border-top: 1px solid #ebebeb;\n  border-radius: 0 0 5px 5px;\n  text-align: right; }\n\n.popover-title.menu-tabs {\n  padding: .5rem .5rem 0;\n  display: block; }\n\n.popover-title.menu-tabs .nav-tabs {\n  position: relative;\n  top: 1px; }\n\n.popover-content {\n  padding: 10px 24px; }\n"
+	module.exports = ":host {\n  display: flex;\n  flex-direction: column;\n  min-width: 577px;\n  padding: 0; }\n\n.popover-action {\n  padding: 8px 14px;\n  margin: 0;\n  font-size: 14px;\n  background-color: #f7f7f7;\n  border-top: 1px solid #ebebeb;\n  border-radius: 0 0 5px 5px;\n  text-align: right; }\n\n.popover-title.menu-tabs {\n  padding: 0.5rem 0.5rem 0;\n  display: block; }\n\n.popover-title.menu-tabs .nav-tabs {\n  position: relative;\n  top: 1px; }\n\n.popover-content {\n  padding: 10px 24px; }\n\nmouse-tab.popover-content {\n  padding: 10px;\n  display: flex;\n  align-items: center; }\n"
 
 /***/ },
-/* 371 */
+/* 382 */
 /***/ function(module, exports) {
 
-	"use strict";
-	var SvgModule = (function () {
-	    function SvgModule(obj) {
-	        this.keyboardKeys = obj.rect.map(function (rect) { return rect.$; }).map(function (rect) {
-	            rect.height = +rect.height;
-	            rect.width = +rect.width;
-	            return rect;
-	        });
-	        this.coverages = obj.path;
-	        this.attributes = obj.$;
-	    }
-	    return SvgModule;
-	}());
-	exports.SvgModule = SvgModule;
-
+	module.exports = ":host {\n  display: flex;\n  flex-direction: column;\n  overflow: hidden; }\n  :host > div:first-child {\n    display: flex;\n    flex: 1;\n    align-items: center;\n    justify-content: center; }\n\nbutton {\n  margin: 2px; }\n\n:host > div:last-child {\n  display: flex;\n  flex: 5;\n  position: relative; }\n\n:host > div:last-child > svg-keyboard-popover {\n  width: 80%;\n  position: absolute;\n  left: 50%;\n  transform: translateX(-50%);\n  animation-duration: 400ms;\n  animation-timing-function: ease-in-out; }\n\n@keyframes animate-center-left {\n  0% {\n    transform: translateX(-50%);\n    left: 50%; }\n  100% {\n    transform: translateX(-100%);\n    left: 0%; } }\n\n@keyframes animate-center-right {\n  0% {\n    transform: translateX(-50%);\n    left: 50%; }\n  100% {\n    transform: translateX(0%);\n    left: 100%; } }\n\n[hidden] {\n  display: none; }\n"
 
 /***/ },
-/* 372 */
-/***/ function(module, exports) {
-
-	module.exports = ":host {\n  display: flex;\n  flex-direction: column;\n  overflow: hidden; }\n\n:host > div:first-child {\n  display: flex;\n  flex: 1;\n  align-items: center;\n  justify-content: center; }\n\nbutton {\n  margin: 2px; }\n\n:host > div:last-child {\n  display: flex;\n  flex: 5;\n  position: relative; }\n\n:host > div:last-child > svg-keyboard {\n  width: 80%;\n  position: absolute;\n  left: 50%;\n  transform: translateX(-50%);\n  animation-duration: 400ms;\n  animation-timing-function: ease-in-out; }\n\n@keyframes animate-center-left {\n  0% {\n    transform: translateX(-50%);\n    left: 50%; }\n  100% {\n    transform: translateX(-100%);\n    left: 0%; } }\n\n@keyframes animate-center-right {\n  0% {\n    transform: translateX(-50%);\n    left: 50%; }\n  100% {\n    transform: translateX(0%);\n    left: 100%; } }\n\n[hidden] {\n  display: none; }\n"
-
-/***/ },
-/* 373 */
+/* 383 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {var WritableStream = __webpack_require__(374).Writable
+	/* WEBPACK VAR INJECTION */(function(process) {var WritableStream = __webpack_require__(384).Writable
 	var inherits = __webpack_require__(13).inherits
 	
 	module.exports = BrowserStdout
@@ -53947,7 +54948,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ },
-/* 374 */
+/* 384 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -53973,15 +54974,15 @@
 	
 	module.exports = Stream;
 	
-	var EE = __webpack_require__(375).EventEmitter;
+	var EE = __webpack_require__(385).EventEmitter;
 	var inherits = __webpack_require__(16);
 	
 	inherits(Stream, EE);
-	Stream.Readable = __webpack_require__(376);
-	Stream.Writable = __webpack_require__(386);
-	Stream.Duplex = __webpack_require__(387);
-	Stream.Transform = __webpack_require__(388);
-	Stream.PassThrough = __webpack_require__(389);
+	Stream.Readable = __webpack_require__(386);
+	Stream.Writable = __webpack_require__(396);
+	Stream.Duplex = __webpack_require__(397);
+	Stream.Transform = __webpack_require__(398);
+	Stream.PassThrough = __webpack_require__(399);
 	
 	// Backwards-compat with node 0.4.x
 	Stream.Stream = Stream;
@@ -54080,7 +55081,7 @@
 
 
 /***/ },
-/* 375 */
+/* 385 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -54384,24 +55385,24 @@
 
 
 /***/ },
-/* 376 */
+/* 386 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {exports = module.exports = __webpack_require__(377);
-	exports.Stream = __webpack_require__(374);
+	/* WEBPACK VAR INJECTION */(function(process) {exports = module.exports = __webpack_require__(387);
+	exports.Stream = __webpack_require__(384);
 	exports.Readable = exports;
-	exports.Writable = __webpack_require__(382);
-	exports.Duplex = __webpack_require__(381);
-	exports.Transform = __webpack_require__(384);
-	exports.PassThrough = __webpack_require__(385);
+	exports.Writable = __webpack_require__(392);
+	exports.Duplex = __webpack_require__(391);
+	exports.Transform = __webpack_require__(394);
+	exports.PassThrough = __webpack_require__(395);
 	if (!process.browser && process.env.READABLE_STREAM === 'disable') {
-	  module.exports = __webpack_require__(374);
+	  module.exports = __webpack_require__(384);
 	}
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ },
-/* 377 */
+/* 387 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -54428,7 +55429,7 @@
 	module.exports = Readable;
 	
 	/*<replacement>*/
-	var isArray = __webpack_require__(378);
+	var isArray = __webpack_require__(388);
 	/*</replacement>*/
 	
 	
@@ -54438,7 +55439,7 @@
 	
 	Readable.ReadableState = ReadableState;
 	
-	var EE = __webpack_require__(375).EventEmitter;
+	var EE = __webpack_require__(385).EventEmitter;
 	
 	/*<replacement>*/
 	if (!EE.listenerCount) EE.listenerCount = function(emitter, type) {
@@ -54446,10 +55447,10 @@
 	};
 	/*</replacement>*/
 	
-	var Stream = __webpack_require__(374);
+	var Stream = __webpack_require__(384);
 	
 	/*<replacement>*/
-	var util = __webpack_require__(379);
+	var util = __webpack_require__(389);
 	util.inherits = __webpack_require__(16);
 	/*</replacement>*/
 	
@@ -54457,7 +55458,7 @@
 	
 	
 	/*<replacement>*/
-	var debug = __webpack_require__(380);
+	var debug = __webpack_require__(390);
 	if (debug && debug.debuglog) {
 	  debug = debug.debuglog('stream');
 	} else {
@@ -54469,7 +55470,7 @@
 	util.inherits(Readable, Stream);
 	
 	function ReadableState(options, stream) {
-	  var Duplex = __webpack_require__(381);
+	  var Duplex = __webpack_require__(391);
 	
 	  options = options || {};
 	
@@ -54530,14 +55531,14 @@
 	  this.encoding = null;
 	  if (options.encoding) {
 	    if (!StringDecoder)
-	      StringDecoder = __webpack_require__(383).StringDecoder;
+	      StringDecoder = __webpack_require__(393).StringDecoder;
 	    this.decoder = new StringDecoder(options.encoding);
 	    this.encoding = options.encoding;
 	  }
 	}
 	
 	function Readable(options) {
-	  var Duplex = __webpack_require__(381);
+	  var Duplex = __webpack_require__(391);
 	
 	  if (!(this instanceof Readable))
 	    return new Readable(options);
@@ -54640,7 +55641,7 @@
 	// backwards compatibility.
 	Readable.prototype.setEncoding = function(enc) {
 	  if (!StringDecoder)
-	    StringDecoder = __webpack_require__(383).StringDecoder;
+	    StringDecoder = __webpack_require__(393).StringDecoder;
 	  this._readableState.decoder = new StringDecoder(enc);
 	  this._readableState.encoding = enc;
 	  return this;
@@ -55359,7 +56360,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ },
-/* 378 */
+/* 388 */
 /***/ function(module, exports) {
 
 	module.exports = Array.isArray || function (arr) {
@@ -55368,7 +56369,7 @@
 
 
 /***/ },
-/* 379 */
+/* 389 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {// Copyright Joyent, Inc. and other Node contributors.
@@ -55482,13 +56483,13 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3).Buffer))
 
 /***/ },
-/* 380 */
+/* 390 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 381 */
+/* 391 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -55529,12 +56530,12 @@
 	
 	
 	/*<replacement>*/
-	var util = __webpack_require__(379);
+	var util = __webpack_require__(389);
 	util.inherits = __webpack_require__(16);
 	/*</replacement>*/
 	
-	var Readable = __webpack_require__(377);
-	var Writable = __webpack_require__(382);
+	var Readable = __webpack_require__(387);
+	var Writable = __webpack_require__(392);
 	
 	util.inherits(Duplex, Readable);
 	
@@ -55584,7 +56585,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ },
-/* 382 */
+/* 392 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -55622,11 +56623,11 @@
 	
 	
 	/*<replacement>*/
-	var util = __webpack_require__(379);
+	var util = __webpack_require__(389);
 	util.inherits = __webpack_require__(16);
 	/*</replacement>*/
 	
-	var Stream = __webpack_require__(374);
+	var Stream = __webpack_require__(384);
 	
 	util.inherits(Writable, Stream);
 	
@@ -55637,7 +56638,7 @@
 	}
 	
 	function WritableState(options, stream) {
-	  var Duplex = __webpack_require__(381);
+	  var Duplex = __webpack_require__(391);
 	
 	  options = options || {};
 	
@@ -55725,7 +56726,7 @@
 	}
 	
 	function Writable(options) {
-	  var Duplex = __webpack_require__(381);
+	  var Duplex = __webpack_require__(391);
 	
 	  // Writable ctor is applied to Duplexes, though they're not
 	  // instanceof Writable, they're instanceof Readable.
@@ -56068,7 +57069,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ },
-/* 383 */
+/* 393 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -56295,7 +57296,7 @@
 
 
 /***/ },
-/* 384 */
+/* 394 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -56364,10 +57365,10 @@
 	
 	module.exports = Transform;
 	
-	var Duplex = __webpack_require__(381);
+	var Duplex = __webpack_require__(391);
 	
 	/*<replacement>*/
-	var util = __webpack_require__(379);
+	var util = __webpack_require__(389);
 	util.inherits = __webpack_require__(16);
 	/*</replacement>*/
 	
@@ -56510,7 +57511,7 @@
 
 
 /***/ },
-/* 385 */
+/* 395 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -56540,10 +57541,10 @@
 	
 	module.exports = PassThrough;
 	
-	var Transform = __webpack_require__(384);
+	var Transform = __webpack_require__(394);
 	
 	/*<replacement>*/
-	var util = __webpack_require__(379);
+	var util = __webpack_require__(389);
 	util.inherits = __webpack_require__(16);
 	/*</replacement>*/
 	
@@ -56562,31 +57563,31 @@
 
 
 /***/ },
-/* 386 */
+/* 396 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(382)
+	module.exports = __webpack_require__(392)
 
 
 /***/ },
-/* 387 */
+/* 397 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(381)
+	module.exports = __webpack_require__(391)
 
 
 /***/ },
-/* 388 */
+/* 398 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(384)
+	module.exports = __webpack_require__(394)
 
 
 /***/ },
-/* 389 */
+/* 399 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(385)
+	module.exports = __webpack_require__(395)
 
 
 /***/ }
