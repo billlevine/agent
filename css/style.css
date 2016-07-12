@@ -30,6 +30,9 @@
 .select2-container {
   z-index: 100000; }
 
+.nav-tabs > li > a {
+  cursor: pointer; }
+
 .scancode--searchterm {
   color: lightgray;
   float: right; }
@@ -116,3 +119,9 @@
   color: #666; }
   .help-text--mouse-speed p {
     margin: 0; }
+
+.select2-results {
+  text-align: center; }
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 26px !important; }
