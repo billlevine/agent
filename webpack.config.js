@@ -2,7 +2,7 @@
 var SvgStore = require('webpack-svgstore-plugin');
 
 module.exports = {
-    entry: ['reflect-metadata', 'zone.js', 'es6-shim', "./src/boot.ts"],
+    entry: ['es6-shim', 'zone.js', 'reflect-metadata', './src/boot.ts'],
     output: {
         path: __dirname + "/build",
         filename: "uhk.js"
@@ -21,6 +21,7 @@ module.exports = {
     module: {
         loaders: [
             { test: /\.ts$/, loader: 'ts-loader', exclude: /node_modules/ },
+            { test: /\.html$/, loader: 'html-loader' },
             {
                 test: /\.scss$/,
                 exclude: /node_modules/,

@@ -1,5 +1,4 @@
 import { Component, OnInit, OnChanges, Input } from '@angular/core';
-import { NgSwitch, NgSwitchWhen} from '@angular/common';
 
 import {MacroAction} from '../../../../config-serializer/config-items/MacroAction';
 import {DelayMacroAction} from '../../../../config-serializer/config-items/DelayMacroAction';
@@ -18,7 +17,7 @@ import {TextMacroAction} from '../../../../config-serializer/config-items/TextMa
 
 import {IconComponent} from '../widgets/icon.component';
 
-import {KeyModifiers}  from '../../../../config-serializer/config-items/KeystrokeModifiersAction';
+import {KeyModifiers}  from '../../../../config-serializer/config-items/KeyModifiers';
 
 @Component({
     moduleId: module.id,
@@ -32,7 +31,7 @@ import {KeyModifiers}  from '../../../../config-serializer/config-items/Keystrok
          <icon *ngIf="editable" name="pencil"></icon>
     `,
     styles: [require('./macro-item.component.scss')],
-    directives: [NgSwitch, NgSwitchWhen, IconComponent]
+    directives: [IconComponent]
 })
 export class MacroItemComponent implements OnInit, OnChanges {
 

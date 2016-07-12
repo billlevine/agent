@@ -6,7 +6,7 @@ export abstract class Serializable<T> {
 
     private static depth = 0;
     private static maxDisplayedJsonLength = 160;
-    private static enableDump = true;
+    private static enableDump = false;
 
     fromJsObject(jsObject: any): T {
         this.dump(`${this.getIndentation()}${this.constructor.name}.fromJsObject: ` +
@@ -55,7 +55,7 @@ export abstract class Serializable<T> {
     abstract _toJsObject(): any;
     abstract _toBinary(buffer: UhkBuffer): void;
 
-    private dump(value) {
+    private dump(value: any) {
         if (Serializable.enableDump) {
             process.stdout.write(value);
         }
